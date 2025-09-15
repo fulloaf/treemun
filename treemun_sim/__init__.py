@@ -1,42 +1,50 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-#to get __init__.py
+# treemun/treemun_sim/__init__.py
 """
-Simulador Forestal - Paquete para simulación de crecimiento forestal
+treemun - Package for simulation of forest growth, yield and management
 
-Este paquete proporciona herramientas para simular el crecimiento forestal
-y optimizar políticas de manejo para diferentes especies (Pinus y Eucalyptus).
+basic usage example:
 
-Uso básico:
-    import simulador_forestal as sf
+    import treemun_sim as tm
     
-    # Simulación con parámetros por defecto
-    bosque, resumen, biomasa_final, biomasa_estimada = sf.simular_bosque()
+    horizon=30
+    stand_number=100
     
-    # Simulación personalizada
-    bosque, resumen, biomasa_final, biomasa_estimada = sf.simular_bosque(
-        policies_pino=[(9, 18), (10, 20)],
-        policies_eucalyptus=[(9,), (10,)],
-        horizonte=25,
-        num_rodales=50,
-        semilla=1234
+    # Forest simulation
+    forest, forest_summary, last_period_biomass, collected_biomass = tm.simular_bosque(
+        horizonte=horizon,
+        num_rodales=stand_number
     )
-
-Autor: Felipe Ulloa-Fierro
-Versión: 1.0.0
+    
+    # Optimization
+    model = tm.forest_management_optimization_model(
+        forest, last_period_biomass, collected_biomass, horizon
+    )
+    
+    results = tm.solve_model(model, 'cbc')
+    solution = tm.extract_results(model, results)
+    
 """
 
-# Importar la función principal que los usuarios van a usar
+# Main functions for simulation
 from .core import simular_bosque
 
-# Metadata del paquete
-__version__ = "1.0.0"
+# Optimization functions
+from .optimization import (
+    forest_management_optimization_model,
+    solve_model,
+    extract_results
+)
+
+__version__ = "1.1.5"
 __author__ = "Felipe Ulloa-Fierro"
 
-# Solo exponemos la función principal para mantener una API limpia
-__all__ = ["simular_bosque"]
-
+# Main functions exposed by the package
+__all__ = [
+    # Simulation
+    "simular_bosque",
+    
+    # Optimization
+    "forest_management_optimization_model",
+    "solve_model", 
+    "extract_results"
+]
