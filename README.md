@@ -24,6 +24,38 @@ A Python package that implements a discrete-time simulation framework for evalua
 - Provide a decision support framework for tactical/strategic forest management planning, creating a seamless workflow from biological growth modeling to prescriptive management optimization.
 - Deliver an accessible computational tool that reduces technical barriers to applying operations research methodologies in forest management context, supporting both research and educational applications.
 
+
+## Simulator's Empirical Foundation
+
+The growth models implemented in this system are founded upon comprehensive field data from Chilean forest plantations, documented by Hernández et al. (2011) and Corvalán et al. (2012). The subsequent analytical work of Miranda et al. (2023) establishes the technical and theoretical guidelines for the present tool, which focuses specifically on two species: *Pinus radiata* and *Eucalyptus globulus*.
+
+### Forest Stand Classification
+
+The table below summarizes the set of species-specific ecological and management dimensions for the considered forest stands, whose values (state-parameters) served as a basis for adjusting parameters for the mathematical foundation of the growth model.
+
+| Dimension | *Pinus radiata* | *Eucalyptus globulus* |
+|-----------|-----------------|------------------------|
+| **Geographic Zone** | Z6-Z7 | Z01-Z02 |
+| **Site Index** | 23, 26, 29, 32 | 24, 26, 28, 30, 32 |
+| **Management Regime** | Pulpable, Multipurpose, Intensive 1 or 2 | Unmanaged |
+| **Stand Condition** | Managed | Unmanaged |
+| **Initial Density** | 1250 trees/ha | 800, 1250 trees/ha |
+
+#### Understanding the Classification Dimensions
+
+- **Site Index (SI):** The average height of the dominant trees at a base age of 10 years. It is calculated from the total height of the 100 trees per hectare with the largest DBH (Diameter at Breast Height, measured at 1.3 m above ground level).
+
+- **Management Regime:** The management scheme applied to the stand, which can be one of the following:
+  - **Pulpable:** A regime involving thinning to waste (pre-commercial thinning).
+  - **Multipurpose:** A regime where the stand has been pruned and thinned twice.
+  - **Intensive 1:** A regime where the stand has been pruned three times and thinned twice.
+  - **Intensive 2:** A regime where the stand has been pruned two or three times and thinned twice, depending on site quality.
+  - **Unmanaged:** When none of the above regimes are applied.
+
+- **Stand Condition:** The state of the forest stand relative to its management history.
+
+- **Initial Density:** The initial number of trees per hectare in the forest stand at age 0 (at the time of planting).
+
 ## Simulator's Mathematical Foundation
 
 The simulator is functionally grounded in the forest stand-level biomass prediction model developed by Miranda et al. (2023), whose structure was selected through rigorous nonlinear least squares fitting using the Levenberg-Marquardt algorithm.
