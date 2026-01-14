@@ -17,6 +17,75 @@ A Python package that implements a discrete-time simulation framework for evalua
 - Data preparation for optimization algorithms
 - Guaranteed reproducibility through seeds
 
+
+## Simulator Mathematical Foundation
+
+The simulator is functionally grounded in the forest stand-level biomass prediction model developed by Miranda et al. (2023), whose structure was selected through rigorous nonlinear least squares fitting using the Levenberg-Marquardt algorithm.
+
+### Core Growth Equation
+
+The general growth equation models stand total biomass as a function of stand age:
+```
+B_t^s = [α · (E_t^s)^β + γ] · A^s
+```
+
+Where:
+- **B_t^s**: Total aerial biomass (m³) of forest stand s in time period t
+- **E_t^s**: Biological age of forest stand s in time period t
+- **α, β, γ**: Model coefficients that vary based on forest stand characteristics
+- **A^s**: Area of forest stand s (ha)
+
+The specific coefficient values for each species are provided in the appendix tables.
+
+## Simulation Logic
+
+### Species-Specific Management Policies
+
+**Pinus radiata** stands follow a dual-curve growth model:
+
+- **State 0** (pre-thinning): `B_t = f(E_t, α₁, β₁, γ₁, A)` for t ≤ thinning-age
+- **State 1** (post-thinning): `B_t = f(E_t, α₂, β₂, γ₂, A)` for thinning-age < t ≤ harvest-age
+
+**Eucalyptus globulus** stands use a single continuous growth curve: `B_t = f(E_t, α, β, γ, A)` with management determined solely by harvest age.
+
+### Regeneration Cycle
+
+Following any harvest, the model assumes immediate replanting, resetting the stand's biological age to 1 in the subsequent period.
+
+### Simulation Period vs Biological Age
+
+- **Simulation Period (t)**: Discrete time steps of the planning horizon, where t ∈ {1, 2, ..., H}
+- **Stand Biological Age (E)**: Physiological age of trees, evolves as:
+```
+E^s(t) = initial_age_s + t - 1  (if no harvest)
+E^s(t) = t - t_last_harvest      (if harvested)
+```
+
+### KITRAL Fuel Classification
+
+| Species | Age Range | Unmanaged | Managed |
+|---------|-----------|-----------|---------|
+| *Pinus radiata* | ≤ 3 | PL01 | - |
+| *Pinus radiata* | 3 < age ≤ 11 | PL02 | PL05 |
+| *Pinus radiata* | 11 < age ≤ 17 | PL03 | PL06 |
+| *Pinus radiata* | > 17 | PL04 | PL07 |
+| *Eucalyptus globulus* | ≤ 3 | PL08 | - |
+| *Eucalyptus globulus* | 3 < age ≤ 10 | PL09 | - |
+| *Eucalyptus globulus* | > 10 | PL10 | - |
+
+## Growth Simulation Examples
+
+### Pinus radiata Example
+11.65 ha stand over 30-year horizon with thinning at age 12 (t=10) and harvest at age 24 (t=22).
+
+![Pinus radiata growth simulation](docs/images/pinus_growth.png)
+
+### Eucalyptus globulus Example
+17.88 ha stand over 30-year horizon with harvests at 10-year intervals (t=1, 11, 21).
+
+![Eucalyptus globulus growth simulation](docs/images/eucalyptus_growth.png)
+
+
 ## Mathematical Model
 
 The optimization module implements a Mixed-Integer Linear Programming (MILP) model for strategic forest management planning, extending Johnson and Scheurman's (1977) Model I formulation to address multi-species plantation management.
