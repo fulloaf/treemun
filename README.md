@@ -77,7 +77,7 @@ The specific coefficient values for each specie, zone, initial density, site ind
 
 ## Simulation Logic
 
-![Simulation_logic_scheme](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/growth_scheme_new.jpg)
+![Simulation_logic_scheme](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/growth_schemes_new.jpg)
 
 ### Species-Specific Management Policies
 
@@ -106,12 +106,12 @@ E^s(t) = t - t_last_harvest      (if harvested)
 ### Pinus radiata Example
 11.65 ha stand over 30-year horizon with thinning at age 12 (t=10) and harvest at age 24 (t=22).
 
-![Pinus radiata growth simulation](docs/images/pinus_growth.png)
+![Pinus radiata growth simulation](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/grafico_final_tesis_equations_pino.svg)
 
 ### Eucalyptus globulus Example
 17.88 ha stand over 30-year horizon with harvests at 10-year intervals (t=1, 11, 21).
 
-![Eucalyptus globulus growth simulation](docs/images/eucalyptus_growth.png)
+![Eucalyptus globulus growth simulation](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/grafico_final_tesis_equations_eucalipto.svg)
 
 
 ## Mathematical Model
