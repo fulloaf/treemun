@@ -24,7 +24,7 @@ A Python package that implements a discrete-time simulation framework for evalua
 - Provide a decision support framework for tactical/strategic forest management planning, creating a seamless workflow from biological growth modeling to prescriptive management optimization.
 - Deliver an accessible computational tool that reduces technical barriers to applying operations research methodologies in forest management context, supporting both research and educational applications.
 
-## Simulator Mathematical Foundation
+## Simulator's Mathematical Foundation
 
 The simulator is functionally grounded in the forest stand-level biomass prediction model developed by Miranda et al. (2023), whose structure was selected through rigorous nonlinear least squares fitting using the Levenberg-Marquardt algorithm.
 
