@@ -67,18 +67,6 @@ E^s(t) = initial_age_s + t - 1  (if no harvest)
 E^s(t) = t - t_last_harvest      (if harvested)
 ```
 
-### KITRAL Fuel Classification
-
-| Species | Age Range | Unmanaged | Managed |
-|---------|-----------|-----------|---------|
-| *Pinus radiata* | ≤ 3 | PL01 | - |
-| *Pinus radiata* | 3 < age ≤ 11 | PL02 | PL05 |
-| *Pinus radiata* | 11 < age ≤ 17 | PL03 | PL06 |
-| *Pinus radiata* | > 17 | PL04 | PL07 |
-| *Eucalyptus globulus* | ≤ 3 | PL08 | - |
-| *Eucalyptus globulus* | 3 < age ≤ 10 | PL09 | - |
-| *Eucalyptus globulus* | > 10 | PL10 | - |
-
 ## Growth Simulation Examples
 
 ### Pinus radiata Example
@@ -242,6 +230,21 @@ The figure demonstrates three harvest-only policies for an Eucalyptus globulus s
 The visualization shows how rotation length affects cumulative biomass production and harvest timing across the planning horizon.
 
 These examples demonstrate the package's capability to simulate complex stand dynamics under different management regimes, providing the foundation data for optimization models.
+
+This framework's ability to model forest stand age progression, which incorporates post-harvest regeneration, also enables the annual tracking of each stand's fuel class. This dynamic assessment is based on the Chilean KITRAL fuel model  (Julio et al., 1997). The following table lists the specific fuel codes associated with each of the plantation forest species under consideration.
+
+## KITRAL Fuel Classification
+
+| Species | Age Range | Unmanaged | Managed |
+|---------|-----------|-----------|---------|
+| *Pinus radiata* | ≤ 3 | PL01 | - |
+| *Pinus radiata* | 3 < age ≤ 11 | PL02 | PL05 |
+| *Pinus radiata* | 11 < age ≤ 17 | PL03 | PL06 |
+| *Pinus radiata* | > 17 | PL04 | PL07 |
+| *Eucalyptus globulus* | ≤ 3 | PL08 | - |
+| *Eucalyptus globulus* | 3 < age ≤ 10 | PL09 | - |
+| *Eucalyptus globulus* | > 10 | PL10 | - |
+
 
 ## Advanced Usage
 
