@@ -146,7 +146,7 @@ if solution:
 The following figures illustrate how different management policies affect biomass dynamics over time (30 years horizon) for representative stands:
 
 ### Pinus radiata Stand Simulation
-![Pinus radiata policies](treemun/docs/images/grafico_final_policies_pino.png)
+![Pinus radiata policies](https://raw.githubusercontent.com/fulloaf/treemun/docs/images/grafico_final_policies_pino.png)
 
 The figure shows three management policies applied to a single Pinus radiata stand:
 - **Policy 1**: Thinning at 12 years, harvest at 24 years (longer rotation)
@@ -156,7 +156,7 @@ The figure shows three management policies applied to a single Pinus radiata sta
 Each policy produces different biomass trajectories, affecting both total yield and temporal distribution of harvests.
 
 ### Eucalyptus globulus Stand Simulation
-![Eucalyptus globulus policies](treemun/docs/images/grafico_final_policies_eucalipto.png)
+![Eucalyptus globulus policies](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/grafico_final_policies_eucalipto.png)
 
 The figure demonstrates three harvest-only policies for an Eucalyptus globulus stand:
 - **Policy 1**: 10-year rotations (frequent short rotations)
