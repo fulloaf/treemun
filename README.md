@@ -77,7 +77,7 @@ The specific coefficient values for each specie, zone, initial density, site ind
 
 ## Simulation Logic
 
-![Simulation_logic_scheme](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/growth_scheme_new.pdf)
+![Simulation_logic_scheme](https://raw.githubusercontent.com/fulloaf/treemun/main/docs/images/growth_scheme_new.jpg)
 
 ### Species-Specific Management Policies
 
