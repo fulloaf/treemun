@@ -1,4 +1,4 @@
-# Treemun: a growth and yield simulator for chilean plantation forest
+# Treemun: a growth and yield simulator for Chilean plantation forest
 
 [![PyPI version](https://badge.fury.io/py/treemun-sim.svg)](https://badge.fury.io/py/treemun-sim)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -17,6 +17,12 @@ A Python package that implements a discrete-time simulation framework for evalua
 - Data preparation for optimization algorithms
 - Guaranteed reproducibility through seeds
 
+## Tool Objectives
+
+- Simulate forest stand-level biomass growth dynamics across multi-decadal planning horizons for *Pinus radiata* and *Eucalyptus globulus* species.
+- Enable comparison of silvicultural strategies through automated generation of multiple stand-policy combinations to evaluate the biological/economic yield of each forest stand.
+- Provide a decision support framework for tactical/strategic forest management planning, creating a seamless workflow from biological growth modeling to prescriptive management optimization.
+- Deliver an accessible computational tool that reduces technical barriers to applying operations research methodologies in forest management context, supporting both research and educational applications.
 
 ## Simulator Mathematical Foundation
 
@@ -30,12 +36,12 @@ B_t^s = [α · (E_t^s)^β + γ] · A^s
 ```
 
 Where:
-- **B_t^s**: Total aerial biomass (m³) of forest stand s in time period t
-- **E_t^s**: Biological age of forest stand s in time period t
-- **α, β, γ**: Model coefficients that vary based on forest stand characteristics
-- **A^s**: Area of forest stand s (ha)
+- **B_t^s**: Total aerial biomass (m³) of forest stand s in time period t.
+- **E_t^s**: Biological age of forest stand s in time period t.
+- **α, β, γ**: Model coefficients that vary based on forest stand characteristics.
+- **A^s**: Area of forest stand s (ha).
 
-The specific coefficient values for each species are provided in the appendix tables.
+The specific coefficient values for each specie, zone, initial density, site index (SI), management type and condition are provided in the appendix tables.
 
 ## Simulation Logic
 
