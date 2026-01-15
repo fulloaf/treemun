@@ -83,10 +83,10 @@ The specific coefficient values for each specie, zone, initial density, site ind
 
 **Pinus radiata** stands follow a dual-curve growth model:
 
-- **State 0** (pre-thinning): `B_t = f(E_t, α₁, β₁, γ₁, A)` for t ≤ thinning-age
-- **State 1** (post-thinning): `B_t = f(E_t, α₂, β₂, γ₂, A)` for thinning-age < t ≤ harvest-age
+- **State 0** (pre-thinning): `B_t^s = f(E_t^s, α₁, β₁, γ₁, A^s)` for t ≤ thinning-age
+- **State 1** (post-thinning): `B_t^s = f(E_t^s, α₂, β₂, γ₂, A^s)` for thinning-age < t ≤ harvest-age
 
-**Eucalyptus globulus** stands use a single continuous growth curve: `B_t = f(E_t, α, β, γ, A)` with management determined solely by harvest age.
+**Eucalyptus globulus** stands use a single continuous growth curve: `B_t^s = f(E_t^s, αⱼ, βⱼ, γⱼ, A^s)` with management determined solely by harvest age.
 
 ### Regeneration Cycle
 
