@@ -282,6 +282,64 @@ This framework's ability to model forest stand age progression, which incorporat
 
 ## Advanced Usage
 
+### Loading Forest from File
+
+You can load your own forest stands from a CSV or TXT file instead of generating them randomly:
+
+```python
+import treemun_sim as tm
+
+# Load forest from CSV file
+forest, summary, final_biomass, collected_biomass = tm.simular_bosque(
+    archivo_rodales="my_forest.csv",  # Load from file
+    policies_pino=[(9, 18), (10, 20), (11, 22)],
+    policies_eucalyptus=[(9,), (10,), (11,)],
+    horizonte=30
+)
+```
+
+**Required CSV columns:**
+- `id_rodal`: Stand identifier (string)
+- `hectareas`: Stand area in hectares (float)
+- `especie`: Species - 'Pinus' or 'Eucalyptus' (string, case-insensitive; also accepts 'Eucapyltus', 'Pino', 'Eucalipto')
+- `edad_inicial`: Initial stand age in years (int)
+- `zona`: Geographic zone (int: 1, 2, 6, 7)
+- `site_index`: Site index (int, e.g., 23-32 for Pinus, 24-32 for Eucalyptus)
+- `manejo`: Management type (string, see valid combinations below)
+- `condicion`: Stand condition (string, see valid combinations below)
+- `densidad_inicial`: Initial tree density per ha (int, e.g., 800, 1250)
+
+**Valid combinations for Pinus (validated equations only):**
+Only the following combinations are accepted for Pinus stands:
+
+| zona | site_index | manejo | condicion | 
+|------|------------|--------|-----------|
+| 6 | 32 | Intensivo | PostRaleo1250-700 |
+| 7 | 32 | Intensivo | PostRaleo1250-700 |
+| 6 | 29 | Intensivo2 | PostRaleo1250-700 |
+| 7 | 29 | Intensivo2 | PostRaleo1250-700 |
+| 6 | 26 | Multipropósito | PostRaleo1250-700 |
+| 7 | 26 | Multipropósito | PostRaleo1250-700 |
+
+Note: These correspond to validated equation IDs [21, 22, 25, 26, 29, 30] in the lookup table.
+
+**Valid combinations for Eucalyptus:**
+- zona: 1 or 2
+- site_index: 24, 26, 28, 30, 32
+- manejo: 'NA'
+- condicion: 'SinManejo'
+- densidad_inicial: 800 or 1250
+
+**Example CSV file** (`my_forest.csv`):
+```csv
+id_rodal,hectareas,especie,edad_inicial,zona,site_index,manejo,condicion,densidad_inicial
+stand1,15.5,Pinus,5,Z6,26,Multipropósito,con manejo,1250
+stand2,8.3,Eucapyltus,3,Z01,28,NA,SinManejo,1250
+stand3,12.7,Pinus,8,Z7,29,Intensivo,con manejo,1250
+```
+
+See `examples/ejemplo_rodales.csv` and `examples/load_from_file.py` for complete examples.
+
 ### Custom Simulation Parameters
 ```python
 import treemun_sim as tm
@@ -329,10 +387,11 @@ model = tm.forest_management_optimization_model(
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
+| `archivo_rodales` | `str` | None | Path to CSV/TXT file with stand data. If provided, `num_rodales` is ignored |
 | `policies_pino` | `List[Tuple[int, int]]` | 16 policies | Pine policies: `[(thinning_age, harvest_age), ...]` |
 | `policies_eucalyptus` | `List[Tuple[int]]` | 4 policies | Eucalyptus policies: `[(harvest_age,), ...]` |
 | `horizonte` | `int` | 30 | Time horizon in years |
-| `num_rodales` | `int` | 100 | Number of stands to generate |
+| `num_rodales` | `int` | 100 | Number of stands to generate (ignored if `archivo_rodales` is provided) |
 | `semilla` | `int` | 5555 | Seed for reproducibility |
 
 ### Optimization Functions

@@ -7,6 +7,7 @@
 # treemun_sim/core.py
 """
 Función principal del simulador forestal.
+
 """
 
 import pandas as pd
@@ -35,6 +36,7 @@ def cargar_lookup_table():
         raise FileNotFoundError(f"No se pudo cargar lookup_table.csv: {e}")
 
 def simular_bosque(
+    archivo_rodales: str = None,
     policies_pino: List[Tuple[int, int]] = None,
     policies_eucalyptus: List[Tuple[int,]] = None,
     horizonte: int = 30,
@@ -45,12 +47,16 @@ def simular_bosque(
     Función principal del simulador forestal.
     
     Args:
+        archivo_rodales: Ruta a archivo CSV/TXT con información de rodales. 
+                        Si se especifica, se ignora num_rodales y se cargan los rodales del archivo.
+                        Columnas requeridas: id_rodal, hectareas, especie, edad_inicial, zona, 
+                        site_index, manejo, condicion, densidad_inicial
         policies_pino: Lista de políticas para pino, formato [(raleo, cosecha), ...]
                       Por defecto: [(9, 18), (9, 20), ..., (12, 24)]
         policies_eucalyptus: Lista de políticas para eucalipto, formato [(cosecha,), ...]
                             Por defecto: [(9,), (10,), (11,), (12,)]
         horizonte: Horizonte temporal de la simulación (años)
-        num_rodales: Número de rodales a generar
+        num_rodales: Número de rodales a generar aleatoriamente (ignorado si archivo_rodales es especificado)
         semilla: Semilla para reproducibilidad. Si es None, usa SEMILLA_GLOBAL (5555)
         
     Returns:
@@ -79,15 +85,28 @@ def simular_bosque(
     # Cargar datos base
     df, dict_idx = cargar_lookup_table()
     
-    # Generar configuración de rodales aleatorios
-    config = generar_rodales_aleatorios(
-        df=df,
-        dict_idx=dict_idx,
-        num_rodales=num_rodales,
-        horizonte=horizonte,
-        policies_pino=policies_pino,
-        policies_eucalyptus=policies_eucalyptus
-    )
+    # Generar configuración de rodales
+    if archivo_rodales is not None:
+        # Cargar desde archivo
+        from .generadores import cargar_rodales_desde_archivo
+        config = cargar_rodales_desde_archivo(
+            archivo=archivo_rodales,
+            df=df,
+            dict_idx=dict_idx,
+            horizonte=horizonte,
+            policies_pino=policies_pino,
+            policies_eucalyptus=policies_eucalyptus
+        )
+    else:
+        # Generar aleatoriamente
+        config = generar_rodales_aleatorios(
+            df=df,
+            dict_idx=dict_idx,
+            num_rodales=num_rodales,
+            horizonte=horizonte,
+            policies_pino=policies_pino,
+            policies_eucalyptus=policies_eucalyptus
+        )
     
     # Generar rodales base
     rodales = generar_rodales(config, df, dict_idx)
@@ -104,4 +123,3 @@ def simular_bosque(
     biomasa_estimada = getBiomasa4Opti(bosque, resumen)
     
     return bosque, resumen, biomasa_final_por_rodal, biomasa_estimada
-

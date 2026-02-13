@@ -4,18 +4,269 @@
 # In[ ]:
 
 
-# simulador_forestal/generadores.py
+# treemun/generadores.py
+
 """
 Módulo para generación de rodales aleatorios y aplicación de políticas de manejo.
+
 """
 
 import numpy as np
 import pandas as pd
 import random
 from typing import List, Tuple, Dict, Any
+import os
 
 # IDs válidos para pinos iniciales (del código original)
 IDS_PINOS_INICIALES_VALIDOS = [21, 22, 25, 26, 29, 30]
+
+def cargar_rodales_desde_archivo(
+    archivo: str,
+    df: pd.DataFrame,
+    dict_idx: Dict,
+    horizonte: int,
+    policies_pino: List[Tuple[int, int]],
+    policies_eucalyptus: List[Tuple[int,]]
+) -> Dict[str, Any]:
+    """
+    Carga rodales desde un archivo CSV o TXT.
+    
+    Columnas requeridas en el archivo:
+    - id_rodal: Identificador único del rodal (string)
+    - hectareas: Superficie en hectáreas (float)
+    - especie: 'Pinus' o 'Eucapyltus' (string)
+    - edad_inicial: Edad inicial del rodal en años (int)
+    - zona: Zona geográfica (string, ej: 'Z6', 'Z7', 'Z01', 'Z02')
+    - site_index: Índice de sitio (int, ej: 23, 26, 29, 32 para Pinus; 24-32 para Eucalyptus)
+    - manejo: Tipo de manejo (string, ej: 'Multipropósito', 'Intensivo', 'NA')
+    - condicion: Condición del rodal (string, ej: 'con manejo', 'sin manejo', 'SinManejo')
+    - densidad_inicial: Densidad inicial de árboles por ha (int, ej: 800, 1250)
+    
+    Args:
+        archivo: Ruta al archivo CSV/TXT
+        df: DataFrame con la lookup table
+        dict_idx: Diccionario de índices de la lookup table
+        horizonte: Horizonte temporal de la simulación
+        policies_pino: Lista de políticas para pino
+        policies_eucalyptus: Lista de políticas para eucalipto
+        
+    Returns:
+        Diccionario de configuración compatible con generar_rodales()
+        
+    Raises:
+        FileNotFoundError: Si el archivo no existe
+        ValueError: Si faltan columnas requeridas o valores inválidos
+    """
+    
+    # Verificar que el archivo existe
+    if not os.path.exists(archivo):
+        raise FileNotFoundError(f"No se encontró el archivo: {archivo}")
+    
+    # Determinar separador según extensión
+    ext = os.path.splitext(archivo)[1].lower()
+    if ext == '.csv':
+        sep = ','
+    elif ext == '.txt':
+        sep = '\t'
+    else:
+        # Intentar detectar automáticamente
+        sep = None
+    
+    # Cargar archivo
+    try:
+        if sep:
+            rodales_df = pd.read_csv(archivo, sep=sep)
+        else:
+            rodales_df = pd.read_csv(archivo, sep=None, engine='python')
+    except Exception as e:
+        raise ValueError(f"Error al leer el archivo: {e}")
+    
+    # Columnas requeridas
+    columnas_requeridas = [
+        'id_rodal', 'hectareas', 'especie', 'edad_inicial', 
+        'zona', 'site_index', 'manejo', 'condicion', 'densidad_inicial'
+    ]
+    
+    # Verificar columnas
+    columnas_faltantes = set(columnas_requeridas) - set(rodales_df.columns)
+    if columnas_faltantes:
+        raise ValueError(
+            f"Faltan las siguientes columnas requeridas: {', '.join(columnas_faltantes)}\n"
+            f"Columnas encontradas: {', '.join(rodales_df.columns)}"
+        )
+    
+    print(f"Cargando {len(rodales_df)} rodales desde {archivo}...")
+    
+    # Listas para almacenar los datos validados
+    edades_iniciales = []
+    hectareas = []
+    ids_rodales = []
+    especies_aleatorias = []
+    zonas_aleatorias = []
+    site_indices_aleatorios = []
+    densidades_iniciales_aleatorias = []
+    manejos_aleatorios = []
+    condiciones_aleatorias = []
+    
+    # Contadores
+    pinos_count = 0
+    eucas_count = 0
+    rodales_invalidos = []
+    
+    # Procesar cada rodal
+    for idx, row in rodales_df.iterrows():
+        try:
+            # Extraer valores
+            id_rodal = str(row['id_rodal'])
+            hectarea = float(row['hectareas'])
+            especie_raw = str(row['especie']).strip()
+            edad_inicial = int(row['edad_inicial'])
+            zona = int(row['zona'])
+            site_index = int(row['site_index'])
+            manejo_raw = row['manejo']
+            condicion = str(row['condicion']).strip()
+            densidad_inicial = int(row['densidad_inicial'])
+            
+            # Normalizar especie: aceptar variaciones de Pinus y Eucalyptus
+            especie_normalized = especie_raw.lower().strip()
+            if especie_normalized in ['pinus', 'pino']:
+                especie = 'Pinus'
+            elif especie_normalized in ['eucalyptus', 'eucapyltus', 'eucalipto']:
+                especie = 'Eucapyltus'
+            else:
+                rodales_invalidos.append(
+                    f"Fila {idx+2}: Especie '{especie_raw}' inválida. "
+                    f"Use 'Pinus' o 'Eucalyptus' (se aceptan variaciones en mayúsculas/minúsculas)"
+                )
+                continue
+            
+            # Manejo: convertir a 'NA' string para consistencia con lookup table (que usa keep_default_na=False)
+            if pd.isna(manejo_raw) or str(manejo_raw).upper() == 'NA':
+                manejo = 'NA'
+            else:
+                manejo = str(manejo_raw).strip()
+            
+            # Validar edad inicial
+            if edad_inicial < 1:
+                rodales_invalidos.append(
+                    f"Fila {idx+2} ({id_rodal}): Edad inicial debe ser >= 1"
+                )
+                continue
+            
+            # Validar hectáreas
+            if hectarea <= 0:
+                rodales_invalidos.append(
+                    f"Fila {idx+2} ({id_rodal}): Hectáreas debe ser > 0"
+                )
+                continue
+            
+            # Crear clave para lookup table
+            # Mapear variaciones de condición
+            condicion_map = {
+                'con manejo': 'con manejo',
+                'sin manejo': 'SinManejo',
+                'sinmanejo': 'SinManejo',
+                'conmanejo': 'con manejo',
+                'postpodayraleo700-300': 'PostPodayRaleo700-300',
+                'postraleo1250-700': 'PostRaleo1250-700',
+            }
+            condicion_normalizada = condicion_map.get(condicion.lower(), condicion)
+            
+            # Construir clave de búsqueda
+            key = (especie, zona, site_index, manejo, condicion_normalizada, densidad_inicial)
+            
+            # Verificar que existe en lookup table
+            if key not in dict_idx:
+                rodales_invalidos.append(
+                    f"Fila {idx+2} ({id_rodal}): Combinación no encontrada en lookup table: "
+                    f"Especie={especie}, Zona={zona}, SiteIndex={site_index}, "
+                    f"Manejo={manejo}, Condicion={condicion_normalizada}, DensidadInicial={densidad_inicial}"
+                )
+                continue
+            
+            # Validación adicional para Pinus: solo aceptar IDs de ecuaciones validadas
+            if especie == 'Pinus':
+                eq_id = dict_idx[key]
+                if eq_id not in IDS_PINOS_INICIALES_VALIDOS:
+                    rodales_invalidos.append(
+                        f"Fila {idx+2} ({id_rodal}): Rodal de Pinus con ID de ecuación {eq_id} no validado. "
+                        f"IDs validados: {IDS_PINOS_INICIALES_VALIDOS}"
+                    )
+                    continue
+            
+            # Verificar políticas factibles
+            num_factibles = contar_politicas_factibles(
+                especie, edad_inicial, horizonte, policies_pino, policies_eucalyptus
+            )
+            
+            if num_factibles < 1:
+                rodales_invalidos.append(
+                    f"Fila {idx+2} ({id_rodal}): No hay políticas factibles para edad_inicial={edad_inicial} "
+                    f"con horizonte={horizonte}"
+                )
+                continue
+            
+            # Si pasó todas las validaciones, agregar a listas
+            ids_rodales.append(id_rodal)
+            edades_iniciales.append(edad_inicial)
+            hectareas.append(hectarea)
+            especies_aleatorias.append(especie)
+            zonas_aleatorias.append(zona)
+            site_indices_aleatorios.append(site_index)
+            densidades_iniciales_aleatorias.append(densidad_inicial)
+            manejos_aleatorios.append(manejo)
+            condiciones_aleatorias.append(condicion_normalizada)
+            
+            if especie == 'Pinus':
+                pinos_count += 1
+            else:
+                eucas_count += 1
+                
+        except Exception as e:
+            rodales_invalidos.append(
+                f"Fila {idx+2}: Error al procesar: {str(e)}"
+            )
+            continue
+    
+    # Reportar rodales inválidos
+    if rodales_invalidos:
+        print(f"\n⚠️  Se encontraron {len(rodales_invalidos)} rodales con problemas:")
+        for msg in rodales_invalidos[:10]:  # Mostrar máximo 10
+            print(f"   - {msg}")
+        if len(rodales_invalidos) > 10:
+            print(f"   ... y {len(rodales_invalidos) - 10} más")
+    
+    # Verificar que se cargó al menos un rodal
+    if len(ids_rodales) == 0:
+        raise ValueError(
+            "No se pudo cargar ningún rodal válido del archivo. "
+            "Revisa los mensajes de error anteriores."
+        )
+    
+    print(f"\n✓ Se cargaron {len(ids_rodales)} rodales válidos:")
+    print(f"  - {pinos_count} rodales de Pinus")
+    print(f"  - {eucas_count} rodales de Eucalyptus")
+    
+    # Crear el diccionario de configuración
+    config = {
+        "horizonte": horizonte,
+        "rodales": len(ids_rodales),
+        "edades": edades_iniciales,
+        "has": hectareas,
+        "especie": especies_aleatorias,
+        "siteIndex": site_indices_aleatorios,
+        "zona": zonas_aleatorias,
+        "densidadInicial": densidades_iniciales_aleatorias,
+        "manejo": manejos_aleatorios,
+        "condición": condiciones_aleatorias,
+        "id_rodal": ids_rodales,
+        "num_policies_pino": len(policies_pino),
+        "policies_pino": policies_pino,
+        "num_policies_eucalyptus": len(policies_eucalyptus),
+        "policies_eucalyptus": policies_eucalyptus,
+    }
+    
+    return config
 
 def contar_politicas_factibles(especie: str, edad_inicial: int, horizonte: int, policies_pino: List[Tuple[int, int]], policies_eucalyptus: List[Tuple[int,]]) -> int:
     """
@@ -151,12 +402,12 @@ def generar_rodales_aleatorios(
         else:
             edad_inicial = np.random.randint(1, 21)
 
-        # Verificar que tenga al menos 2 políticas factibles
+        # Verificar que tenga al menos 1 política factible
         num_factibles = contar_politicas_factibles(
             especie_aleatoria, edad_inicial, horizonte, policies_pino, policies_eucalyptus
         )
         
-        if num_factibles < 2:
+        if num_factibles < 1:
             continue
 
         # Generar combinación válida
@@ -309,4 +560,3 @@ def generar_rodalesconpolicy(
             rodales_con_policy.append(rodal_policy)
 
     return rodales_con_policy
-

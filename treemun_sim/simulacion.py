@@ -4,7 +4,8 @@
 # In[ ]:
 
 
-# simulador_forestal/simulacion.py
+# treemun/simulacion.py
+
 """
 Módulo para la simulación del crecimiento forestal y cálculo de biomasa.
 """
@@ -258,9 +259,9 @@ def getBiomasa4Opti(bosque: List[pd.DataFrame], resumen: List[Dict]) -> Dict:
     # Conversión a diccionario para optimización
     a_I_J_dict = {
         k: v for k, v in 
-        combined_df.stack()
-                   .stack()
-                   .stack()
+        combined_df.stack(future_stack=True)
+                   .stack(future_stack=True)
+                   .stack(future_stack=True)
                    .to_dict().items()
         if not pd.isna(v) and v > 0  # Filtrar valores nulos y ceros
     }
@@ -294,4 +295,3 @@ def simula_bosque_completo(
     )
     
     return bosque, resumen, biomasa_final_por_rodal
-

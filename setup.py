@@ -13,7 +13,7 @@ except FileNotFoundError:
 
 setup(
     name="treemun-sim",
-    version="1.1.5", 
+    version="1.2.0", 
     author="Felipe Ulloa-Fierro",
     author_email="felipe.ulloa@utalca.cl", 
     description="Growth, yield, and management simulator for Chilean plantation forests",
@@ -58,12 +58,18 @@ setup(
             "pulp>=2.0",  # CBC solver
             "cplex",      # CPLEX (requires license) 
         ],
+        "spatial": [
+            "geopandas>=0.10.0",  # for shapefile integration
+            "shapely>=2.0.0",     # geometric operations
+        ],
         "complete": [
             "pulp>=2.0",
             "pytest>=6.0",
             "pytest-cov>=2.0",
             "black>=21.0",
             "flake8>=3.8",
+            "geopandas>=0.10.0",
+            "shapely>=2.0.0",
         ],
     },
     # Uptdated metadata
