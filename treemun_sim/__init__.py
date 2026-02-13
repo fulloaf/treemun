@@ -1,4 +1,5 @@
 # treemun/treemun_sim/__init__.py
+
 """
 treemun - Package for simulation of forest growth, yield and management
 
@@ -35,7 +36,29 @@ from .optimization import (
     extract_results
 )
 
-__version__ = "1.1.5"
+# Spatial functions (optional - require geopandas)
+try:
+    from .spatial import (
+        export_simulation_to_shapefile,
+        export_optimal_policy_to_shapefile
+    )
+    _SPATIAL_AVAILABLE = True
+except ImportError:
+    _SPATIAL_AVAILABLE = False
+    # Define placeholder functions that inform users about missing dependencies
+    def export_simulation_to_shapefile(*args, **kwargs):
+        raise ImportError(
+            "Funciones espaciales no disponibles. "
+            "Instala las dependencias con: pip install treemun-sim[spatial]"
+        )
+    
+    def export_optimal_policy_to_shapefile(*args, **kwargs):
+        raise ImportError(
+            "Funciones espaciales no disponibles. "
+            "Instala las dependencias con: pip install treemun-sim[spatial]"
+        )
+
+__version__ = "1.2.0"
 __author__ = "Felipe Ulloa-Fierro"
 
 # Main functions exposed by the package
@@ -46,5 +69,9 @@ __all__ = [
     # Optimization
     "forest_management_optimization_model",
     "solve_model", 
-    "extract_results"
+    "extract_results",
+    
+    # Spatial (optional)
+    "export_simulation_to_shapefile",
+    "export_optimal_policy_to_shapefile",
 ]
