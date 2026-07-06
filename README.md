@@ -292,10 +292,10 @@ $$
 
 ### Default carbon parameters
 
-| Species | Basic density $\rho$ | Carbon fraction $CF$ | $\alpha=\rho CF$ | $\alpha_{CO2e}$ |
+| Species | Basic density $\rho$ | Carbon fraction $CF$ | $\alpha=\rho CF$ | $\alpha_{\mathrm{CO_2e}}$ |
 |---|---:|---:|---:|---:|
-| *Eucalyptus globulus* | 0.567 Mg m$^{-3}$ | 0.51 | 0.28917 Mg C m$^{-3}$ | 1.06029 Mg CO$_2e$ m$^{-3}$ |
-| *Pinus radiata* | 0.377 Mg m$^{-3}$ | 0.48 | 0.18096 Mg C m$^{-3}$ | 0.66352 Mg CO$_2e$ m$^{-3}$ |
+| *Eucalyptus globulus* | 0.567 $\mathrm{Mg\,m^{-3}}$ | 0.51 | 0.28917 $\mathrm{Mg\,C\,m^{-3}}$ | 1.06029 $\mathrm{Mg\,CO_2e\,m^{-3}}$ |
+| *Pinus radiata* | 0.377 $\mathrm{Mg\,m^{-3}}$ | 0.48 | 0.18096 $\mathrm{Mg\,C\,m^{-3}}$ | 0.66352 $\mathrm{Mg\,CO_2e\,m^{-3}}$ |
 
 The *Eucalyptus globulus* basic density default is based on the reported average basic density of coppiced trees in second rotation. The *Pinus radiata* value is based on reported mean juvenile wood basic density for Chilean radiata pine. The species carbon fractions follow values used for Chilean plantation carbon-stock calculations.
 
@@ -519,29 +519,20 @@ Importantly, the epsilon-constraint models do **not** replace the base Model-I f
 Therefore, let $\mathcal{X}$ denote the feasible set defined by the base Model-I constraints:
 
 $$
+\begin{aligned}
 \mathcal{X} =
-\left\{
-x,H:
-\sum_{j\in J_s}x_{sj}=1 \quad \forall s\in S,
-\right.
-$$
-
-$$
-H_t=\sum_{s\in S}\sum_{j\in J_s}R_{sjt}x_{sj} \quad \forall t\in T,
-$$
-
-$$
-\sum_{s\in S}\sum_{j\in J_s}F_{sj}x_{sj}\ge F_{\min},
-$$
-
-$$
-H_{t+1}\ge (1-\delta)H_t \quad \forall t\in\{1,\ldots,H-1\},
-$$
-
-$$
-\left.
+\Bigl\{(x,H):\;&
+\sum_{j\in J_s}x_{sj}=1 && \forall s\in S,\\
+&
+H_t=\sum_{s\in S}\sum_{j\in J_s}R_{sjt}x_{sj} && \forall t\in T,\\
+&
+\sum_{s\in S}\sum_{j\in J_s}F_{sj}x_{sj}\ge F_{\min},\\
+&
+H_{t+1}\ge (1-\delta)H_t && \forall t\in\{1,\ldots,H-1\},\\
+&
 x_{sj}\in\{0,1\},\quad H_t\ge 0
-\right\}.
+\Bigr\}.
+\end{aligned}
 $$
 
 The epsilon-constraint method then solves a sequence of single-objective MILP problems over this same feasible set $\mathcal{X}$, adding one additional threshold constraint on the secondary objective.
