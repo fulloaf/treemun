@@ -1,7 +1,6 @@
 include README.md
 include LICENSE
 include requirements.txt
-include CHANGELOG.md
 include treemun_sim_v1_3_0_full_pipeline.ipynb
 
 recursive-include treemun_sim *.py
