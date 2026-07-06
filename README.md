@@ -108,32 +108,32 @@ Version `1.3.0` uses a consistent notation to avoid confusion between simulator 
 
 | Symbol | Meaning |
 |---|---|
-| \(s\in S\) | Forest stand or management unit. |
-| \(j\in J_s\) | Feasible management policy for stand \(s\). |
-| \(t\in T=\{1,\ldots,H\}\) | Planning period. |
-| \(sp(s)\) | Species of stand \(s\), either *Pinus radiata* or *Eucalyptus globulus*. |
+| $s\in S$ | Forest stand or management unit. |
+| $j\in J_s$ | Feasible management policy for stand $s$. |
+| $t\in T=\{1,\ldots,H\}$ | Planning period. |
+| $sp(s)$ | Species of stand $s$, either *Pinus radiata* or *Eucalyptus globulus*. |
 
 ### Core volume and biomass-related notation
 
 | Symbol | Package object / column | Meaning |
 |---|---|---|
-| \(Q_{sjt}\) | `biomasa` column in each trajectory DataFrame | Simulated standing volume (biomass) output for stand \(s\), policy \(j\), period \(t\). |
-| \(R_{sjt}\) | `bioOPT`; `removed_volume_by_period`; API argument `a_i_j_t` | Removed/harvested volume (biomass) in period \(t\). This is the period-level value used in optimization. |
-| \(F_{sj}\) | `final_standing_volume`; API argument `a_i_j_T` | Final standing volume (biomass) value at the end of the horizon. |
-| \(H_t\) | Pyomo variable `harvest_volume[t]` | Total removed/harvested volume (biomass) across the landscape in period \(t\). |
-| \(F_{\min}\) | API argument `min_ending_biomass` | Minimum final standing volume (biomass) required at the end of the horizon. |
+| $Q_{sjt}$ | `biomasa` column in each trajectory DataFrame | Simulated standing volume (biomass) output for stand $s$, policy $j$, period $t$. |
+| $R_{sjt}$ | `bioOPT`; `removed_volume_by_period`; API argument `a_i_j_t` | Removed/harvested volume (biomass) in period $t$. This is the period-level value used in optimization. |
+| $F_{sj}$ | `final_standing_volume`; API argument `a_i_j_T` | Final standing volume (biomass) value at the end of the horizon. |
+| $H_t$ | Pyomo variable `harvest_volume[t]` | Total removed/harvested volume (biomass) across the landscape in period $t$. |
+| $F_{\min}$ | API argument `min_ending_biomass` | Minimum final standing volume (biomass) required at the end of the horizon. |
 
-The API argument names `a_i_j_t` and `a_i_j_T` are retained for backward compatibility. In this README they should be interpreted as \(R_{sjt}\) and \(F_{sj}\), respectively.
+The API argument names `a_i_j_t` and `a_i_j_T` are retained for backward compatibility. In this README they should be interpreted as $R_{sjt}$ and $F_{sj}$, respectively.
 
 ### Carbon notation
 
 | Symbol | Package object / column | Meaning |
 |---|---|---|
-| \(C^{pre}_{sjt}\) | `CarbonStockPre_MgC` | Pre-operation above-ground live carbon stock. |
-| \(C^{rem}_{sjt}\) | `RemovedCarbon_MgC` | Carbon associated with removed volume \(R_{sjt}\). |
-| \(C^{post}_{sjt}\) | `CarbonStockPost_MgC` | Post-operation above-ground live carbon stock. |
-| \(\Delta C_{sjt}\) | `CarbSeq_MgC` | Net operational change in above-ground live carbon stock. |
-| \(c_{sjt}\) | `CarbSeqOPT`; `carbon_change_by_period`; API argument `carbon_i_j_t` | Optimization-aligned carbon-stock-change proxy. |
+| $C^{pre}_{sjt}$ | `CarbonStockPre_MgC` | Pre-operation above-ground live carbon stock. |
+| $C^{rem}_{sjt}$ | `RemovedCarbon_MgC` | Carbon associated with removed volume $R_{sjt}$. |
+| $C^{post}_{sjt}$ | `CarbonStockPost_MgC` | Post-operation above-ground live carbon stock. |
+| $\Delta C_{sjt}$ | `CarbSeq_MgC` | Net operational change in above-ground live carbon stock. |
+| $c_{sjt}$ | `CarbSeqOPT`; `carbon_change_by_period`; API argument `carbon_i_j_t` | Optimization-aligned carbon-stock-change proxy. |
 
 ### Returned object names used in examples
 
@@ -141,9 +141,9 @@ The API argument names `a_i_j_t` and `a_i_j_T` are retained for backward compati
 |---|---|
 | `forest_trajectories` | List of simulated stand-policy trajectories. Each element is a `pandas.DataFrame`. |
 | `policy_catalog` | Catalog of all simulated stand-policy alternatives. This is **not** an optimization result. |
-| `final_standing_volume` | Dictionary mapping each stand-policy pair to \(F_{sj}\). Used by the optimization model. |
-| `removed_volume_by_period` | Dictionary mapping each period-species-policy-stand tuple to \(R_{sjt}\). Used by the optimization model. |
-| `carbon_change_by_period` | Dictionary mapping each period-species-policy-stand tuple to \(c_{sjt}\). Aligned with `removed_volume_by_period`. |
+| `final_standing_volume` | Dictionary mapping each stand-policy pair to $F_{sj}$. Used by the optimization model. |
+| `removed_volume_by_period` | Dictionary mapping each period-species-policy-stand tuple to $R_{sjt}$. Used by the optimization model. |
+| `carbon_change_by_period` | Dictionary mapping each period-species-policy-stand tuple to $c_{sjt}$. Aligned with `removed_volume_by_period`. |
 
 ---
 
@@ -151,37 +151,37 @@ The API argument names `a_i_j_t` and `a_i_j_T` are retained for backward compati
 
 Let:
 
-- \(s\) denote a stand;
-- \(j\in J_s\) denote a feasible management policy for stand \(s\);
-- \(t\in\{1,\dots,H\}\) denote a discrete simulation period;
-- \(E_{sjt}\) denote biological age under policy \(j\);
-- \(A_s\) denote stand area;
-- \(Q_{sjt}\) denote simulated standing volume output.
+- $s$ denote a stand;
+- $j\in J_s$ denote a feasible management policy for stand $s$;
+- $t\in\{1,\dots,H\}$ denote a discrete simulation period;
+- $E_{sjt}$ denote biological age under policy $j$;
+- $A_s$ denote stand area;
+- $Q_{sjt}$ denote simulated standing volume output.
 
 The general stand-level growth equation has the form:
 
-\[
+$$
 Q_{sjt} = \left[\alpha (E_{sjt})^\beta + \gamma\right] A_s,
-\]
+$$
 
-where \(\alpha\), \(\beta\), and \(\gamma\) are coefficients selected according to species, zone, site index, density, management regime, and stand condition.
+where $\alpha$, $\beta$, and $\gamma$ are coefficients selected according to species, zone, site index, density, management regime, and stand condition.
 
-If no harvest has occurred under policy \(j\), biological age evolves as:
+If no harvest has occurred under policy $j$, biological age evolves as:
 
-\[
+$$
 E_{sjt} = E_{sj0} + t - 1.
-\]
+$$
 
 After a harvest, the simulator assumes immediate regeneration, and age is reset according to the elapsed time since the last harvest:
 
-\[
+$$
 E_{sjt} = t - t^{last\_harvest}_{sj}.
-\]
+$$
 
 For each stand-policy-period combination, the simulator produces:
 
-- \(Q_{sjt}\): simulated standing volume output (`biomasa`);
-- \(R_{sjt}\): removed/harvested volume (`bioOPT`), equal to zero in periods without operations.
+- $Q_{sjt}$: simulated standing volume output (`biomasa`);
+- $R_{sjt}$: removed/harvested volume (`bioOPT`), equal to zero in periods without operations.
 
 ### Species-specific policy logic
 
@@ -242,60 +242,60 @@ forest_trajectories, policy_catalog, final_standing_volume, removed_volume_by_pe
 
 Let:
 
-- \(Q^{pre}_{sjt}\): pre-operation standing volume for stand \(s\), policy \(j\), period \(t\);
-- \(R_{sjt}\): removed/harvested volume, corresponding to `bioOPT`;
-- \(Q^{post}_{sjt}\): post-operation standing volume;
-- \(\rho_{sp}\): species wood basic density;
-- \(CF_{sp}\): species carbon fraction;
-- \(\alpha_{sp}=\rho_{sp}CF_{sp}\): carbon conversion coefficient.
+- $Q^{pre}_{sjt}$: pre-operation standing volume for stand $s$, policy $j$, period $t$;
+- $R_{sjt}$: removed/harvested volume, corresponding to `bioOPT`;
+- $Q^{post}_{sjt}$: post-operation standing volume;
+- $\rho_{sp}$: species wood basic density;
+- $CF_{sp}$: species carbon fraction;
+- $\alpha_{sp}=\rho_{sp}CF_{sp}$: carbon conversion coefficient.
 
 Then:
 
-\[
+$$
 C^{pre}_{sjt}=\alpha_{sp(s)} Q^{pre}_{sjt},
-\]
+$$
 
-\[
+$$
 C^{rem}_{sjt}=\alpha_{sp(s)} R_{sjt},
-\]
+$$
 
-\[
+$$
 C^{post}_{sjt}=\alpha_{sp(s)} Q^{post}_{sjt}.
-\]
+$$
 
 The period-level net operational change in above-ground live carbon stock is:
 
-\[
+$$
 \Delta C_{sjt}=C^{post}_{sjt}-C^{post}_{sj,t-1}.
-\]
+$$
 
 For the first period, if an operation occurs, the proxy is initialized as:
 
-\[
+$$
 \Delta C_{sj1}=C^{post}_{sj1}-C^{pre}_{sj1}=-C^{rem}_{sj1}.
-\]
+$$
 
-The optimization-aligned proxy `CarbSeqOPT`, denoted by \(c_{sjt}\), is nonzero only in periods with operations:
+The optimization-aligned proxy `CarbSeqOPT`, denoted by $c_{sjt}$, is nonzero only in periods with operations:
 
-\[
+$$
 c_{sjt}=\begin{cases}
 \Delta C_{sjt}, & \text{if } R_{sjt}>0,\\
 0, & \text{otherwise.}
 \end{cases}
-\]
+$$
 
-The package also reports CO\(_2\)-equivalent values using:
+The package also reports CO$_2$-equivalent values using:
 
-\[
+$$
 CO_2e = C\times \frac{44}{12}.
-\]
+$$
 
 ### Default carbon parameters
 
-| Species | Basic density \(\rho\) | Carbon fraction \(CF\) | \(\alpha=\rho CF\) | \(\alpha_{CO2e}\) |
+| Species | Basic density $\rho$ | Carbon fraction $CF$ | $\alpha=\rho CF$ | $\alpha_{CO2e}$ |
 |---|---:|---:|---:|---:|
-| *Eucalyptus globulus* | 0.567 Mg m\(^{-3}\) | 0.51 | 0.28917 Mg C m\(^{-3}\) | 1.06029 Mg CO\(_2e\) m\(^{-3}\) |
-| *Pinus radiata* | 0.377 Mg m\(^{-3}\) | 0.48 | 0.18096 Mg C m\(^{-3}\) | 0.66352 Mg CO\(_2e\) m\(^{-3}\) |
+| *Eucalyptus globulus* | 0.567 Mg m$^{-3}$ | 0.51 | 0.28917 Mg C m$^{-3}$ | 1.06029 Mg CO$_2e$ m$^{-3}$ |
+| *Pinus radiata* | 0.377 Mg m$^{-3}$ | 0.48 | 0.18096 Mg C m$^{-3}$ | 0.66352 Mg CO$_2e$ m$^{-3}$ |
 
 The *Eucalyptus globulus* basic density default is based on the reported average basic density of coppiced trees in second rotation. The *Pinus radiata* value is based on reported mean juvenile wood basic density for Chilean radiata pine. The species carbon fractions follow values used for Chilean plantation carbon-stock calculations.
 
@@ -309,73 +309,73 @@ The optimization model selects one simulated policy for each stand. It follows a
 
 ### Sets
 
-- \(S\): set of stands.
-- \(J_s\): set of feasible policies for stand \(s\).
-- \(T=\{1,\ldots,H\}\): set of planning periods.
+- $S$: set of stands.
+- $J_s$: set of feasible policies for stand $s$.
+- $T=\{1,\ldots,H\}$: set of planning periods.
 
 ### Decision variables
 
-\[
+$$
 x_{sj}=\begin{cases}
 1, & \text{if policy } j \text{ is selected for stand } s,\\
 0, & \text{otherwise.}
 \end{cases}
-\]
+$$
 
-\[
+$$
 H_t\ge 0 \quad \forall t\in T,
-\]
+$$
 
-where \(H_t\) is the total harvested/removed volume in period \(t\).
+where $H_t$ is the total harvested/removed volume in period $t$.
 
 ### Main parameters
 
 | Symbol | Meaning | Package object / argument |
 |---|---|---|
-| \(R_{sjt}\) | Removed/harvested volume (biomass) from stand \(s\) under policy \(j\) in period \(t\). | `removed_volume_by_period`; API argument `a_i_j_t` |
-| \(F_{sj}\) | Final standing volume (biomass) value for stand \(s\) under policy \(j\). | `final_standing_volume`; API argument `a_i_j_T` |
-| \(p_{sp(s),t}\) | Revenue for the species of stand \(s\) in period \(t\). | `pine_revenue`, `eucalyptus_revenue` |
-| \(r\) | Discount rate. | `discount_rate` |
-| \(F_{\min}\) | Minimum required final standing volume (biomass). | `min_ending_biomass` |
-| \(c_{sjt}\) | Optimization-aligned carbon-stock-change proxy. | `carbon_change_by_period`; API argument `carbon_i_j_t` |
+| $R_{sjt}$ | Removed/harvested volume (biomass) from stand $s$ under policy $j$ in period $t$. | `removed_volume_by_period`; API argument `a_i_j_t` |
+| $F_{sj}$ | Final standing volume (biomass) value for stand $s$ under policy $j$. | `final_standing_volume`; API argument `a_i_j_T` |
+| $p_{sp(s),t}$ | Revenue for the species of stand $s$ in period $t$. | `pine_revenue`, `eucalyptus_revenue` |
+| $r$ | Discount rate. | `discount_rate` |
+| $F_{\min}$ | Minimum required final standing volume (biomass). | `min_ending_biomass` |
+| $c_{sjt}$ | Optimization-aligned carbon-stock-change proxy. | `carbon_change_by_period`; API argument `carbon_i_j_t` |
 
 ### Constraints
 
 Assignment:
 
-\[
+$$
 \sum_{j\in J_s}x_{sj}=1 \quad \forall s\in S.
-\]
+$$
 
 Harvest accounting:
 
-\[
+$$
 H_t=\sum_{s\in S}\sum_{j\in J_s}R_{sjt}x_{sj} \quad \forall t\in T.
-\]
+$$
 
 Ending standing-volume constraint:
 
-\[
+$$
 \sum_{s\in S}\sum_{j\in J_s}F_{sj}x_{sj}\ge F_{\min}.
-\]
+$$
 
 Even-flow with tolerance:
 
-\[
+$$
 H_{t+1}\ge (1-\delta)H_t \quad \forall t\in\{1,\ldots,H-1\},
-\]
+$$
 
-where \(\delta\) is `even_flow_tolerance`.
+where $\delta$ is `even_flow_tolerance`.
 
-- `even_flow_tolerance=0.0` recovers \(H_{t+1}\ge H_t\).
-- `even_flow_tolerance=0.10` allows \(H_{t+1}\ge 0.90H_t\).
+- `even_flow_tolerance=0.0` recovers $H_{t+1}\ge H_t$.
+- `even_flow_tolerance=0.10` allows $H_{t+1}\ge 0.90H_t$.
 - `even_flow_tolerance=1.0` practically disables the non-decreasing harvest condition.
 
 Variable domains:
 
-\[
+$$
 x_{sj}\in\{0,1\}, \quad H_t\ge 0.
-\]
+$$
 
 ---
 
@@ -387,10 +387,10 @@ x_{sj}\in\{0,1\}, \quad H_t\ge 0.
 objective="npv"
 ```
 
-\[
+$$
 \max Z_{NPV}=\sum_{s\in S}\sum_{j\in J_s}\sum_{t\in T}
 \frac{p_{sp(s),t}R_{sjt}}{(1+r)^t}x_{sj}.
-\]
+$$
 
 ### 2. Carbon-stock-change maximization
 
@@ -398,11 +398,11 @@ objective="npv"
 objective="carbon"
 ```
 
-\[
+$$
 \max Z_C=\sum_{s\in S}\sum_{j\in J_s}\sum_{t\in T}c_{sjt}x_{sj}.
-\]
+$$
 
-Because `CarbSeqOPT` values can be negative, maximizing \(Z_C\) means selecting policies with less negative operational changes in standing live above-ground carbon stock.
+Because `CarbSeqOPT` values can be negative, maximizing $Z_C$ means selecting policies with less negative operational changes in standing live above-ground carbon stock.
 
 ### 3. Weighted NPV-carbon objective
 
@@ -410,19 +410,19 @@ Because `CarbSeqOPT` values can be negative, maximizing \(Z_C\) means selecting 
 objective="weighted"
 ```
 
-\[
+$$
 \max Z_W =
 w_{NPV}\frac{Z_{NPV}}{S_{NPV}}+
 w_C\frac{Z_C}{S_C},
-\]
+$$
 
 where:
 
-\[
+$$
 w_C=1-w_{NPV}.
-\]
+$$
 
-The terms \(S_{NPV}\) and \(S_C\) are scaling factors used to make the weighted sum numerically comparable.
+The terms $S_{NPV}$ and $S_C$ are scaling factors used to make the weighted sum numerically comparable.
 
 ---
 
@@ -430,31 +430,31 @@ The terms \(S_{NPV}\) and \(S_C\) are scaling factors used to make the weighted 
 
 The underlying bi-objective planning problem can be written as:
 
-\[
+$$
 \max \left(Z_{NPV}(x), Z_C(x)\right)
-\]
+$$
 
 subject to:
 
-\[
+$$
 \sum_{j\in J_s}x_{sj}=1 \quad \forall s\in S,
-\]
+$$
 
-\[
+$$
 H_t=\sum_{s\in S}\sum_{j\in J_s}R_{sjt}x_{sj} \quad \forall t\in T,
-\]
+$$
 
-\[
+$$
 H_{t+1}\ge (1-\delta)H_t \quad \forall t\in\{1,\ldots,H-1\},
-\]
+$$
 
-\[
+$$
 \sum_{s\in S}\sum_{j\in J_s}F_{sj}x_{sj}\ge F_{\min},
-\]
+$$
 
-\[
+$$
 x_{sj}\in\{0,1\},\quad H_t\ge 0.
-\]
+$$
 
 This bi-objective structure allows the decision maker to explore trade-offs between economic value and operational carbon-stock-change performance.
 
@@ -463,11 +463,11 @@ This bi-objective structure allows the decision maker to explore trade-offs betw
 
 The function `build_weighted_pareto_front()` solves the weighted objective for a sequence of NPV weights:
 
-\[
+$$
 w_{NPV}\in\{0,0.1,0.2,\ldots,1.0\},
 \quad
 w_C=1-w_{NPV}.
-\]
+$$
 
 ```python
 pareto_df, fig, ax = tm.build_weighted_pareto_front(
@@ -497,7 +497,7 @@ Example figure:
 
 ![Example weighted Pareto front](docs/images/weighted_pareto_front_example.png)
 
-When `save_results=True`, the function writes a results directory with the front table, summary text file, PNG plot, selected policies, harvest trajectory \(H_t\), and per-model reports.
+When `save_results=True`, the function writes a results directory with the front table, summary text file, PNG plot, selected policies, harvest trajectory $H_t$, and per-model reports.
 
 > In discrete MILP problems, the weighted-sum method may not recover all non-convex portions of the Pareto frontier. For this reason, `treemun-sim` also includes epsilon-constraint front generation.
 
@@ -516,49 +516,49 @@ Importantly, the epsilon-constraint models do **not** replace the base Model-I f
 - binary policy-selection variables;
 - nonnegative harvest-volume variables.
 
-Therefore, let \(\mathcal{X}\) denote the feasible set defined by the base Model-I constraints:
+Therefore, let $\mathcal{X}$ denote the feasible set defined by the base Model-I constraints:
 
-\[
+$$
 \mathcal{X} =
 \left\{
 x,H:
 \sum_{j\in J_s}x_{sj}=1 \quad \forall s\in S,
 \right.
-\]
+$$
 
-\[
+$$
 H_t=\sum_{s\in S}\sum_{j\in J_s}R_{sjt}x_{sj} \quad \forall t\in T,
-\]
+$$
 
-\[
+$$
 \sum_{s\in S}\sum_{j\in J_s}F_{sj}x_{sj}\ge F_{\min},
-\]
+$$
 
-\[
+$$
 H_{t+1}\ge (1-\delta)H_t \quad \forall t\in\{1,\ldots,H-1\},
-\]
+$$
 
-\[
+$$
 \left.
 x_{sj}\in\{0,1\},\quad H_t\ge 0
 \right\}.
-\]
+$$
 
-The epsilon-constraint method then solves a sequence of single-objective MILP problems over this same feasible set \(\mathcal{X}\), adding one additional threshold constraint on the secondary objective.
+The epsilon-constraint method then solves a sequence of single-objective MILP problems over this same feasible set $\mathcal{X}$, adding one additional threshold constraint on the secondary objective.
 
 ### Direction A: maximize NPV subject to a carbon threshold
 
 In this direction, NPV is maximized while requiring the selected plan to satisfy a minimum carbon-stock-change threshold:
 
-\[
+$$
 \max_{(x,H)\in\mathcal{X}} Z_{NPV}(x)
-\]
+$$
 
 subject to the additional epsilon constraint:
 
-\[
+$$
 Z_C(x)\ge \varepsilon_C.
-\]
+$$
 
 Equivalently, this problem keeps all base Model-I constraints and adds only one extra carbon-threshold constraint.
 
@@ -604,15 +604,15 @@ Decision-support interpretation:
 
 In this direction, the carbon-stock-change objective is maximized while requiring the selected plan to retain at least a specified NPV level:
 
-\[
+$$
 \max_{(x,H)\in\mathcal{X}} Z_C(x)
-\]
+$$
 
 subject to the additional epsilon constraint:
 
-\[
+$$
 Z_{NPV}(x)\ge \varepsilon_{NPV}.
-\]
+$$
 
 Equivalently, this problem keeps all base Model-I constraints and adds only one extra NPV-threshold constraint.
 
@@ -652,9 +652,9 @@ Example figure generated by `build_epsilon_constraint_front()`:
 
 When `epsilon_mode="relative"` and `epsilon_on="npv"`, a value such as `0.90` means:
 
-\[
+$$
 Z_{NPV}\ge 0.90 Z_{NPV}^{max}.
-\]
+$$
 
 Decision-support interpretation:
 
@@ -664,11 +664,11 @@ In other words, this direction is useful when the decision maker is willing to s
 
 ### Knee-point detection
 
-The package identifies a knee-like compromise solution using normalized distance to the ideal point. Let \(\widehat{Z}_{NPV}\) and \(\widehat{Z}_C\) denote normalized objective values. The knee point is selected as:
+The package identifies a knee-like compromise solution using normalized distance to the ideal point. Let $\widehat{Z}_{NPV}$ and $\widehat{Z}_C$ denote normalized objective values. The knee point is selected as:
 
-\[
+$$
 i^* = \arg\min_i \sqrt{(1-\widehat{Z}_{NPV,i})^2+(1-\widehat{Z}_{C,i})^2}.
-\]
+$$
 
 Extract the knee point with:
 
@@ -1064,15 +1064,15 @@ gdf_knee = tm.export_optimal_policy_to_shapefile(
 | Parameter | Type | Description |
 |---|---|---|
 | `bosque` | `list[pd.DataFrame]` | Simulated forest trajectories (`forest_trajectories`). |
-| `a_i_j_T` | `dict` | Legacy API name for `final_standing_volume`; mathematically \(F_{sj}\). |
-| `a_i_j_t` | `dict` | Legacy API name for `removed_volume_by_period`; mathematically \(R_{sjt}\). |
-| `carbon_i_j_t` | `dict` or `None` | Carbon dictionary, required for carbon and weighted objectives; mathematically \(c_{sjt}\). |
+| `a_i_j_T` | `dict` | Legacy API name for `final_standing_volume`; mathematically $F_{sj}$. |
+| `a_i_j_t` | `dict` | Legacy API name for `removed_volume_by_period`; mathematically $R_{sjt}$. |
+| `carbon_i_j_t` | `dict` or `None` | Carbon dictionary, required for carbon and weighted objectives; mathematically $c_{sjt}$. |
 | `horizon` | `int` | Planning horizon. |
 | `pine_revenue` | `float` or `list[float]` | Pine revenue. |
 | `eucalyptus_revenue` | `float` or `list[float]` | Eucalyptus revenue. |
-| `min_ending_biomass` | `float` | Minimum final standing volume value, \(F_{\min}\). |
+| `min_ending_biomass` | `float` | Minimum final standing volume value, $F_{\min}$. |
 | `discount_rate` | `float` | Discount rate. |
-| `even_flow_tolerance` | `float` | Tolerance \(\delta\) in the even-flow constraint. |
+| `even_flow_tolerance` | `float` | Tolerance $\delta$ in the even-flow constraint. |
 | `objective` | `str` | `"npv"`, `"carbon"`, or `"weighted"`. |
 | `npv_weight` | `float` | Weight for NPV in weighted mode. |
 | `carbon_weight` | `float` | Weight for carbon in weighted mode. |
@@ -1106,14 +1106,14 @@ Each DataFrame in `forest_trajectories` typically contains one stand-policy traj
 
 | Column | Mathematical notation | Meaning |
 |---|---|---|
-| `id_rodal` | \(s\) | Stand identifier. |
-| `periodo` | \(t\) | Simulation period. |
-| `edad_rodal` | \(E_{sjt}\) | Stand biological age. |
-| `biomasa` | \(Q_{sjt}\) | Simulated standing volume value. |
-| `bioOPT` | \(R_{sjt}\) | Removed/harvested volume used by the optimization model. |
-| `politica` | \(j\) | Policy name. |
-| `CarbSeq_MgC` | \(\Delta C_{sjt}\) | Net operational carbon-stock-change proxy, if `Carbon=True`. |
-| `CarbSeqOPT` | \(c_{sjt}\) | Optimization-aligned carbon proxy, if `Carbon=True`. |
+| `id_rodal` | $s$ | Stand identifier. |
+| `periodo` | $t$ | Simulation period. |
+| `edad_rodal` | $E_{sjt}$ | Stand biological age. |
+| `biomasa` | $Q_{sjt}$ | Simulated standing volume value. |
+| `bioOPT` | $R_{sjt}$ | Removed/harvested volume used by the optimization model. |
+| `politica` | $j$ | Policy name. |
+| `CarbSeq_MgC` | $\Delta C_{sjt}$ | Net operational carbon-stock-change proxy, if `Carbon=True`. |
+| `CarbSeqOPT` | $c_{sjt}$ | Optimization-aligned carbon proxy, if `Carbon=True`. |
 
 ### Optimization dictionaries
 
@@ -1126,7 +1126,7 @@ Each DataFrame in `forest_trajectories` typically contains one stand-policy traj
 }
 ```
 
-Mathematically, this corresponds to \(R_{sjt}\).
+Mathematically, this corresponds to $R_{sjt}$.
 
 `final_standing_volume` has the form:
 
@@ -1137,7 +1137,7 @@ Mathematically, this corresponds to \(R_{sjt}\).
 }
 ```
 
-Mathematically, this corresponds to \(F_{sj}\).
+Mathematically, this corresponds to $F_{sj}$.
 
 `carbon_change_by_period` is aligned with `removed_volume_by_period`:
 
@@ -1148,7 +1148,7 @@ Mathematically, this corresponds to \(F_{sj}\).
 }
 ```
 
-Mathematically, this corresponds to \(c_{sjt}\).
+Mathematically, this corresponds to $c_{sjt}$.
 
 ### Policy catalog
 
