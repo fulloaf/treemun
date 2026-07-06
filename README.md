@@ -1170,7 +1170,7 @@ Suggested software citation template:
 
 ```text
 Ulloa-Fierro, F., Álvarez-Miranda, E., Garcia-Gonzalo, J., Gonzalez Olabarria, J. R., Mola-Yudego, B., Miranda, A., Carrasco Barra, J., & Weintraub, A. (2026). treemun-sim: Growth, yield, optimization, and carbon-aware decision support framework for Chilean plantation forests
-(Version 1.3.0). Zenodo. [https://doi.org/10.5281/zenodo.21222891]
+(Version 1.3.0). Zenodo. https://doi.org/10.5281/zenodo.21222891
 ```
 
 BibTeX template:
