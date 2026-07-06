@@ -520,17 +520,17 @@ Therefore, let $\mathcal{X}$ denote the feasible set defined by the base Model-I
 
 $$
 \begin{aligned}
-\mathcal{X}=\{(x,H):\;&
+\mathcal{X} = \lbrace (x,H):\;&
 \sum_{j\in J_s}x_{sj}=1 && \forall s\in S,\\
 &
 H_t=\sum_{s\in S}\sum_{j\in J_s}R_{sjt}x_{sj} && \forall t\in T,\\
 &
 \sum_{s\in S}\sum_{j\in J_s}F_{sj}x_{sj}\ge F_{\min},\\
 &
-H_{t+1}\ge (1-\delta)H_t && \forall t\in\{1,\ldots,H-1\},\\
+H_{t+1}\ge (1-\delta)H_t && \forall t\in \lbrace 1,\ldots,H-1\rbrace,\\
 &
-x_{sj}\in\{0,1\},\quad H_t\ge 0
-\}.
+x_{sj}\in \lbrace 0,1\rbrace,\quad H_t\ge 0
+\rbrace .
 \end{aligned}
 $$
 
