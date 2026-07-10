@@ -3,6 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/treemun-sim.svg)](https://badge.fury.io/py/treemun-sim)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/treemun-sim?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/treemun-sim)
 
 **treemun-sim** is a Python package for simulating, optimizing, and spatially exporting forest plantation management policies for *Pinus radiata* and *Eucalyptus globulus* stands. It combines a discrete-time growth-and-yield simulator, a mixed-integer programming optimization model, optional carbon-stock proxy accounting, multi-objective decision-support tools, Pareto and epsilon-constraint front generation, and GIS export of optimized stand-level policies.
 
