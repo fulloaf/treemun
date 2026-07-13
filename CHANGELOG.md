@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 1.4.0
+
+### Added
+- Adjacency-aware harvest scheduling tools.
+- Same-period adjacent final-harvest penalties.
+- Generalized green-up adjacency windows through `greenup_window`.
+- Optional hard green-up constraints and soft green-up penalties.
+- Weighted spatial penalties based on shared boundary length.
+- Multi-epsilon NPV-carbon-adjacency front generation.
+- Knee-point identification for three-objective trade-off analysis.
+- Clean example dataset with `examples/forest_stands.csv` and `examples/shapefile/treemun_landscape.*`.
+
+### Changed
+- Extended the carbon-aware v1.3.0 optimization framework with spatial regularization capabilities.
+- Updated package version to 1.4.0.
+
+
+# Changelog
+
 All notable changes to treemun-sim will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

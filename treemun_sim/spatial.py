@@ -20,60 +20,193 @@ import pandas as pd
 from typing import List, Dict, Optional
 import warnings
 import re
+from pathlib import Path
+
 
 
 def _extract_policy_number(policy_str: str) -> int:
     """
     Extrae el número de política de un string.
-    
-    Args:
-        policy_str: String como "policy_pino 1" o "policy_eucalyptus 2"
-    
-    Returns:
-        Número de política como entero
+
+    Examples
+    --------
+    'policy_pino 1' -> 1
+    'policy_eucalyptus 3' -> 3
     """
     match = re.search(r'(\d+)$', str(policy_str))
     if match:
         return int(match.group(1))
-    return 1  # Default
+    return 1
 
 
-def solution_to_selected_policies(solution: Dict) -> Dict[str, int]:
+def solution_to_selected_policies(solution: Dict) -> pd.DataFrame:
     """
-    Convierte el formato de solution (output de extract_results) a un diccionario
-    de políticas seleccionadas.
-    
-    Args:
-        solution: Diccionario con claves 'pinus_stand_plan' y 'eucalyptus_stand_plan'
-                 Cada uno es una lista de tuplas (stand_id, policy_name)
-    
-    Returns:
-        Diccionario {stand_id: policy_number}
-    
-    Example:
-        >>> solution = {
-        ...     'pinus_stand_plan': [('stand1', 'policy_pino 2'), ('stand3', 'policy_pino 1')],
-        ...     'eucalyptus_stand_plan': [('stand2', 'policy_eucalyptus 3')]
-        ... }
-        >>> selected = solution_to_selected_policies(solution)
-        >>> print(selected)
-        # {'stand1': 2, 'stand3': 1, 'stand2': 3}
+    Convierte el output de extract_results() a un DataFrame con las políticas
+    seleccionadas por rodal.
+
+    A diferencia de la versión anterior, esta función conserva:
+        - species
+        - stand id
+        - full policy name
+        - policy number
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns:
+            id_rodal, especie, policy, policy_num, x_ij
     """
-    selected_policies = {}
-    
-    # Procesar Pinus
-    if 'pinus_stand_plan' in solution:
-        for stand_id, policy_name in solution['pinus_stand_plan']:
-            policy_num = _extract_policy_number(policy_name)
-            selected_policies[stand_id] = policy_num
-    
-    # Procesar Eucalyptus
-    if 'eucalyptus_stand_plan' in solution:
-        for stand_id, policy_name in solution['eucalyptus_stand_plan']:
-            policy_num = _extract_policy_number(policy_name)
-            selected_policies[stand_id] = policy_num
-    
-    return selected_policies
+    records = []
+
+    if solution is None:
+        return pd.DataFrame(
+            columns=["id_rodal", "especie", "policy", "policy_num", "x_ij"]
+        )
+
+    for stand_id, policy_name in solution.get("pinus_stand_plan", []):
+        records.append(
+            {
+                "id_rodal": stand_id,
+                "especie": "Pinus",
+                "policy": policy_name,
+                "policy_num": _extract_policy_number(policy_name),
+                "x_ij": 1,
+            }
+        )
+
+    for stand_id, policy_name in solution.get("eucalyptus_stand_plan", []):
+        records.append(
+            {
+                "id_rodal": stand_id,
+                "especie": "Eucalyptus",
+                "policy": policy_name,
+                "policy_num": _extract_policy_number(policy_name),
+                "x_ij": 1,
+            }
+        )
+
+    selected_df = pd.DataFrame(records)
+
+    if selected_df.empty:
+        return pd.DataFrame(
+            columns=["id_rodal", "especie", "policy", "policy_num", "x_ij"]
+        )
+
+    selected_df["id_rodal"] = selected_df["id_rodal"].astype(str)
+    selected_df["policy"] = selected_df["policy"].astype(str)
+
+    return selected_df
+
+
+def _summary_to_policy_catalog(summary: List[Dict]) -> pd.DataFrame:
+    """
+    Convierte summary/resumen_c a un catálogo rodal-política.
+
+    summary no es la solución óptima; es el catálogo de políticas simuladas
+    para cada rodal.
+    """
+    if summary is None:
+        return pd.DataFrame()
+
+    catalog = pd.DataFrame(summary)
+
+    if catalog.empty:
+        return catalog
+
+    rename_map = {
+        "id_rodal": "id_rodal",
+        "especie": "especie",
+        "has": "has",
+        "edad_inicial": "edad_ini",
+        "edad_final": "edad_fin_cat",
+        "policy": "policy",
+        "ecuacion_inicial_id": "eq_ini_id",
+    }
+
+    keep = [c for c in rename_map if c in catalog.columns]
+    catalog = catalog[keep].rename(columns=rename_map)
+
+    if "id_rodal" in catalog.columns:
+        catalog["id_rodal"] = catalog["id_rodal"].astype(str)
+
+    if "policy" in catalog.columns:
+        catalog["policy"] = catalog["policy"].astype(str)
+        catalog["policy_num"] = catalog["policy"].apply(_extract_policy_number)
+
+    return catalog.drop_duplicates()
+
+
+def _forest_to_policy_outputs(forest: List[pd.DataFrame]) -> pd.DataFrame:
+    """
+    Extrae atributos finales de cada trayectoria simulada en forest.
+
+    Se usa para recuperar biomasa final, edad final y, si existen, atributos
+    de carbono asociados a la política seleccionada.
+    """
+    records = []
+
+    for df in forest:
+        if df is None or df.empty:
+            continue
+
+        stand_id = df["id_rodal"].iloc[0]
+
+        if "Especie" in df.columns:
+            especie = df["Especie"].iloc[0]
+        elif "especie" in df.columns:
+            especie = df["especie"].iloc[0]
+        else:
+            especie = None
+
+        if "politica" in df.columns:
+            policy = df["politica"].iloc[0]
+        elif "policy" in df.columns:
+            policy = df["policy"].iloc[0]
+        else:
+            policy = None
+
+        policy_num = _extract_policy_number(policy)
+
+        last = df.iloc[-1]
+
+        rec = {
+            "id_rodal": str(stand_id),
+            "especie": especie,
+            "policy": str(policy),
+            "policy_num": policy_num,
+            "bio_fin": round(float(last["biomasa"]), 2) if "biomasa" in df.columns else None,
+            "edad_fin": int(last["edad_rodal"]) if "edad_rodal" in df.columns else None,
+        }
+
+        # Optional carbon-related columns if forest was simulated with Carbon=True.
+        optional_cols = {
+            "CarbonStockPost_MgC": "cpost_mgc",
+            "RemovedCarbon_MgC": "crem_mgc",
+            "CarbSeq_MgC": "cseq_mgc",
+            "CarbSeqOPT": "cseq_opt",
+            "CarbEqvOPT": "ceqv_opt",
+        }
+
+        for source_col, out_col in optional_cols.items():
+            if source_col in df.columns:
+                try:
+                    rec[out_col] = float(last[source_col])
+                except Exception:
+                    rec[out_col] = None
+
+        records.append(rec)
+
+    out = pd.DataFrame(records)
+
+    if out.empty:
+        return out
+
+    out["id_rodal"] = out["id_rodal"].astype(str)
+    out["policy"] = out["policy"].astype(str)
+
+    return out.drop_duplicates()
+
+
 
 
 def export_simulation_to_shapefile(
@@ -242,123 +375,368 @@ def export_optimal_policy_to_shapefile(
     summary: List[Dict],
     shapefile_input: str,
     shapefile_output: str,
-    solution: Optional[Dict] = None
+    solution: Optional[Dict] = None,
+    campo_id: str = "id_rodal",
+    biom_simu: bool = False,
+    carbseqSim: bool = False,
+    max_periods: Optional[int] = None,
+    round_digits: int = 2,
+    allow_first_policy_fallback: bool = False,
 ) -> gpd.GeoDataFrame:
     """
-    Exporta información de las políticas óptimas a shapefile.
-    
-    Si se proporciona `solution` (output de extract_results), exporta las políticas 
-    óptimas seleccionadas por el optimizador. Si no, exporta la primera política de 
-    cada rodal como referencia.
-    
-    Args:
-        forest: Lista de DataFrames con simulaciones
-        summary: Resumen de simulaciones  
-        shapefile_input: Ruta al shapefile original
-        shapefile_output: Ruta para shapefile con políticas
-        solution: Dict output de extract_results() con políticas óptimas (opcional)
-    
-    Returns:
-        GeoDataFrame con atributos de políticas
-    
-    Example:
-        >>> # Con optimización (recomendado)
-        >>> model = tm.forest_management_optimization_model(...)
-        >>> results = tm.solve_model(model)
-        >>> solution = tm.extract_results(model, results)
-        >>> 
-        >>> gdf_opt = tm.export_optimal_policy_to_shapefile(
-        ...     forest=forest,
-        ...     summary=summary,
-        ...     shapefile_input="bosque.shp",
-        ...     shapefile_output="bosque_optimo.shp",
-        ...     solution=solution
-        ... )
+    Exporta una solución óptima puntual a un archivo espacial.
+
+    Por defecto, la función genera un nuevo archivo espacial que conserva todos
+    los atributos originales del shapefile y agrega únicamente:
+
+        opt_policy
+
+    donde opt_policy corresponde a la política seleccionada por el modelo de
+    optimización para cada rodal.
+
+    Opcionalmente, puede agregar las trayectorias simuladas asociadas a la
+    política óptima seleccionada:
+
+    - Si biom_simu=True:
+        agrega biomasa simulada por período con nombres como:
+            bio_P1_t1, bio_P1_t2, ..., bio_P1_t10
+
+    - Si carbseqSim=True:
+        agrega CarbSeq_MgC por período con nombres como:
+            CSeqP1_t1, CSeqP1_t2, ..., CSeqP1_t10
+
+    Parameters
+    ----------
+    forest : list[pandas.DataFrame]
+        Lista de DataFrames generada por simular_bosque(). Cada DataFrame
+        corresponde a una trayectoria rodal-política.
+
+    summary : list[dict]
+        Catálogo de políticas simuladas generado por simular_bosque().
+        Se mantiene como argumento por compatibilidad, pero la política óptima
+        se obtiene desde solution.
+
+    shapefile_input : str
+        Ruta del shapefile/archivo espacial original.
+
+    shapefile_output : str
+        Ruta del archivo espacial de salida. Puede ser .shp o .gpkg.
+
+    solution : dict
+        Output de extract_results(). Debe contener:
+            pinus_stand_plan
+            eucalyptus_stand_plan
+
+    campo_id : str
+        Nombre del campo identificador del rodal en el archivo espacial.
+
+    biom_simu : bool
+        Si True, exporta la biomasa simulada por período para la política óptima.
+
+    carbseqSim : bool
+        Si True, exporta CarbSeq_MgC por período para la política óptima.
+
+    max_periods : int or None
+        Número máximo de períodos a exportar. Si None, exporta todos los períodos
+        disponibles en forest.
+
+    round_digits : int
+        Número de decimales para atributos numéricos exportados.
+
+    allow_first_policy_fallback : bool
+        Si True y solution=None, exporta la primera política disponible por rodal.
+        Por defecto es False para evitar confundir una política de referencia
+        con una política óptima.
+
+    Returns
+    -------
+    geopandas.GeoDataFrame
+        GeoDataFrame con atributos originales más opt_policy y, opcionalmente,
+        biomasa/carbono por período.
     """
-    
-    campo_id = 'id_rodal'
-    
-    # Cargar shapefile
-    gdf = gpd.read_file(shapefile_input)
-    
+
+    def _get_policy_number(policy_name):
+        return _extract_policy_number(policy_name)
+
+    def _get_policy_col(df):
+        if "politica" in df.columns:
+            return "politica"
+        if "policy" in df.columns:
+            return "policy"
+        raise ValueError(
+            "No se encontró columna de política en un DataFrame de forest. "
+            "Se esperaba 'politica' o 'policy'."
+        )
+
+    def _get_period_col(df):
+        if "periodo" in df.columns:
+            return "periodo"
+        if "period" in df.columns:
+            return "period"
+        raise ValueError(
+            "No se encontró columna de período en un DataFrame de forest. "
+            "Se esperaba 'periodo' o 'period'."
+        )
+
+    def _solution_to_selected_df(solution):
+        records = []
+
+        if solution is None:
+            return pd.DataFrame(columns=["id_rodal", "opt_policy"])
+
+        for stand_id, policy_name in solution.get("pinus_stand_plan", []):
+            records.append(
+                {
+                    "id_rodal": str(stand_id),
+                    "opt_policy": str(policy_name),
+                }
+            )
+
+        for stand_id, policy_name in solution.get("eucalyptus_stand_plan", []):
+            records.append(
+                {
+                    "id_rodal": str(stand_id),
+                    "opt_policy": str(policy_name),
+                }
+            )
+
+        return pd.DataFrame(records).drop_duplicates()
+
+    def _fallback_first_policy_from_summary(summary):
+        if summary is None:
+            return pd.DataFrame(columns=["id_rodal", "opt_policy"])
+
+        df = pd.DataFrame(summary)
+
+        if df.empty:
+            return pd.DataFrame(columns=["id_rodal", "opt_policy"])
+
+        if "id_rodal" not in df.columns or "policy" not in df.columns:
+            raise ValueError(
+                "summary debe contener columnas 'id_rodal' y 'policy' para "
+                "usar allow_first_policy_fallback=True."
+            )
+
+        df = df.copy()
+        df["policy_num"] = df["policy"].apply(_extract_policy_number)
+
+        selected = (
+            df.sort_values(["id_rodal", "policy_num"])
+            .groupby("id_rodal", as_index=False)
+            .first()[["id_rodal", "policy"]]
+            .rename(columns={"policy": "opt_policy"})
+        )
+
+        selected["id_rodal"] = selected["id_rodal"].astype(str)
+        selected["opt_policy"] = selected["opt_policy"].astype(str)
+
+        return selected
+
+    def _find_selected_trajectory(forest, stand_id, opt_policy):
+        """
+        Busca en forest el DataFrame que corresponde al rodal y política óptima.
+        Primero intenta coincidencia exacta por nombre de política.
+        Si falla, usa el número de política como respaldo.
+        """
+        stand_id = str(stand_id)
+        opt_policy = str(opt_policy)
+        opt_policy_num = _get_policy_number(opt_policy)
+
+        candidates_same_stand = []
+
+        for df in forest:
+            if df is None or df.empty:
+                continue
+
+            if "id_rodal" not in df.columns:
+                continue
+
+            df_stand = str(df["id_rodal"].iloc[0])
+
+            if df_stand != stand_id:
+                continue
+
+            candidates_same_stand.append(df)
+
+            policy_col = _get_policy_col(df)
+            df_policy = str(df[policy_col].iloc[0])
+
+            if df_policy == opt_policy:
+                return df
+
+        # Fallback por número de política dentro del mismo rodal.
+        for df in candidates_same_stand:
+            policy_col = _get_policy_col(df)
+            df_policy = str(df[policy_col].iloc[0])
+
+            if _get_policy_number(df_policy) == opt_policy_num:
+                return df
+
+        return None
+
+    # ------------------------------------------------------------------
+    # 1. Load spatial file
+    # ------------------------------------------------------------------
+    try:
+        gdf = gpd.read_file(shapefile_input)
+    except Exception as e:
+        raise FileNotFoundError(
+            f"No se pudo cargar el archivo espacial: {shapefile_input}. Error: {e}"
+        )
+
     if campo_id not in gdf.columns:
-        raise ValueError(f"Campo '{campo_id}' no encontrado en shapefile")
-    
-    # Convertir solution a diccionario de políticas seleccionadas si se proporciona
-    selected_policies = None
-    if solution:
-        selected_policies = solution_to_selected_policies(solution)
-    
-    # Crear diccionario de atributos por rodal
-    stands_data = {}
-    
-    for df in forest:
-        stand_id = df['id_rodal'].iloc[0]
-        especie = df['Especie'].iloc[0]
-        politica_str = df['politica'].iloc[0]
-        
-        # Extraer número de política
-        policy_num = _extract_policy_number(politica_str)
-        
-        if stand_id not in stands_data:
-            stands_data[stand_id] = {
-                'especie': especie,
-                'policies': {}
-            }
-        
-        # Guardar info de esta política
-        stands_data[stand_id]['policies'][policy_num] = {
-            'biomasa_final': df['biomasa'].iloc[-1],
-            'edad_final': df['edad_rodal'].iloc[-1]
+        raise ValueError(
+            f"Campo '{campo_id}' no encontrado en archivo espacial. "
+            f"Columnas disponibles: {list(gdf.columns)}"
+        )
+
+    gdf[campo_id] = gdf[campo_id].astype(str)
+
+    # ------------------------------------------------------------------
+    # 2. Build selected policy table
+    # ------------------------------------------------------------------
+    selected_df = _solution_to_selected_df(solution)
+
+    if selected_df.empty:
+        if not allow_first_policy_fallback:
+            raise ValueError(
+                "solution no contiene políticas seleccionadas. "
+                "Debes pasar solution=tm.extract_results(model, results). "
+                "Si quieres exportar la primera política disponible por rodal, "
+                "usa allow_first_policy_fallback=True."
+            )
+
+        warnings.warn(
+            "No se entregó una solución óptima. Se exportará la primera política "
+            "disponible por rodal como referencia.",
+            UserWarning,
+        )
+
+        selected_df = _fallback_first_policy_from_summary(summary)
+
+    if selected_df.empty:
+        raise ValueError("No se pudo construir la tabla de políticas seleccionadas.")
+
+    selected_df["id_rodal"] = selected_df["id_rodal"].astype(str)
+    selected_df["opt_policy"] = selected_df["opt_policy"].astype(str)
+
+    # ------------------------------------------------------------------
+    # 3. Build attributes by stand
+    # ------------------------------------------------------------------
+    attributes = {}
+
+    for _, row in selected_df.iterrows():
+        stand_id = row["id_rodal"]
+        opt_policy = row["opt_policy"]
+        policy_num = _get_policy_number(opt_policy)
+
+        attributes[stand_id] = {
+            "opt_policy": opt_policy,
         }
-    
-    # Crear atributos para cada rodal
-    opt_attributes = {}
-    
-    for stand_id, data in stands_data.items():
-        # Determinar qué política usar
-        if selected_policies and stand_id in selected_policies:
-            # Usar política seleccionada por optimizador
-            policy_num = selected_policies[stand_id]
-        else:
-            # Usar la primera política disponible
-            policy_num = min(data['policies'].keys())
-        
-        if policy_num in data['policies']:
-            policy_data = data['policies'][policy_num]
-            
-            # Crear nombre de política según especie
-            if data['especie'] == 'Pinus':
-                policy_name = f'pol_pino{policy_num}'
-            else:  # Eucapyltus
-                policy_name = f'pol_euca{policy_num}'
-            
-            opt_attributes[stand_id] = {
-                'pol_select': int(policy_num),
-                'opt_policy': policy_name,
-                'especie': data['especie'],
-                'bio_fin': round(policy_data['biomasa_final'], 2),
-                'edad_fin': int(policy_data['edad_final'])
-            }
-    
-    # Convertir a DataFrame
-    opt_df = pd.DataFrame.from_dict(opt_attributes, orient='index')
-    opt_df.index.name = campo_id
-    opt_df.reset_index(inplace=True)
-    
-    # Merge con geometrías
-    gdf_optimal = gdf.merge(opt_df, on=campo_id, how='left')
-    
-    # Guardar
-    gdf_optimal.to_file(shapefile_output)
-    
-    print(f"\n✓ Políticas exportadas: {shapefile_output}")
-    print(f"  - Rodales con política: {len(opt_df)}")
-    if selected_policies:
-        print(f"  - Políticas óptimas del optimizador")
-        if solution and 'objective_value' in solution:
-            print(f"  - VPN total: ${solution['objective_value']:,.2f}")
-    else:
-        print(f"  - Primera política de cada rodal (sin optimización)")
-    
-    return gdf_optimal
+
+        if biom_simu or carbseqSim:
+            traj = _find_selected_trajectory(
+                forest=forest,
+                stand_id=stand_id,
+                opt_policy=opt_policy,
+            )
+
+            if traj is None:
+                warnings.warn(
+                    f"No se encontró trayectoria simulada para rodal={stand_id}, "
+                    f"opt_policy={opt_policy}.",
+                    UserWarning,
+                )
+                continue
+
+            period_col = _get_period_col(traj)
+            traj_sorted = traj.sort_values(period_col).copy()
+
+            if max_periods is not None:
+                traj_sorted = traj_sorted.head(max_periods)
+
+            for _, trow in traj_sorted.iterrows():
+                period = int(trow[period_col])
+
+                if biom_simu:
+                    if "biomasa" not in traj_sorted.columns:
+                        raise ValueError(
+                            "biom_simu=True requiere que los DataFrames de forest "
+                            "contengan la columna 'biomasa'."
+                        )
+
+                    attr_name = f"bio_P{policy_num}_t{period}"
+                    attributes[stand_id][attr_name] = round(
+                        float(trow["biomasa"]),
+                        round_digits,
+                    )
+
+                if carbseqSim:
+                    if "CarbSeq_MgC" not in traj_sorted.columns:
+                        raise ValueError(
+                            "carbseqSim=True requiere que los DataFrames de forest "
+                            "contengan la columna 'CarbSeq_MgC'. "
+                            "Asegúrate de correr simular_bosque(..., Carbon=True)."
+                        )
+
+                    attr_name = f"CSeqP{policy_num}_t{period}"
+                    attributes[stand_id][attr_name] = round(
+                        float(trow["CarbSeq_MgC"]),
+                        round_digits,
+                    )
+
+    attrs_df = pd.DataFrame.from_dict(attributes, orient="index")
+    attrs_df.index.name = campo_id
+    attrs_df.reset_index(inplace=True)
+
+    # ------------------------------------------------------------------
+    # 4. Merge with original geometries
+    # ------------------------------------------------------------------
+    gdf_export = gdf.merge(
+        attrs_df,
+        on=campo_id,
+        how="left",
+    )
+
+    # ------------------------------------------------------------------
+    # 5. Warnings for shapefile format
+    # ------------------------------------------------------------------
+    if str(shapefile_output).lower().endswith(".shp"):
+        long_cols = [c for c in gdf_export.columns if len(str(c)) > 10]
+
+        if long_cols:
+            warnings.warn(
+                "El formato .shp limita los nombres de campos a 10 caracteres. "
+                f"Campos potencialmente truncados: {long_cols}. "
+                "Para conservar nombres completos, considera exportar a .gpkg.",
+                UserWarning,
+            )
+
+        if len(gdf_export.columns) > 254:
+            warnings.warn(
+                f"El shapefile tendría {len(gdf_export.columns)} campos, lo que "
+                "puede exceder el límite del formato .shp. Considera usar .gpkg.",
+                UserWarning,
+            )
+
+    # ------------------------------------------------------------------
+    # 6. Save output
+    # ------------------------------------------------------------------
+    try:
+        output_path = Path(shapefile_output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        gdf_export.to_file(shapefile_output)
+    except Exception as e:
+        raise IOError(
+            f"Error al guardar archivo espacial: {shapefile_output}. Error: {e}"
+        )
+
+    print(f"\n✓ Solución óptima exportada: {shapefile_output}")
+    print(f"  - Rodales en archivo espacial: {len(gdf_export)}")
+    print(f"  - Rodales con opt_policy: {attrs_df[campo_id].nunique()}")
+    print(f"  - biom_simu: {biom_simu}")
+    print(f"  - carbseqSim: {carbseqSim}")
+
+    return gdf_export
+
