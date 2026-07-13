@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include requirements.txt
+include treemun_sim_v1_3_0_full_pipeline.ipynb
+
+recursive-include treemun_sim *.py
+recursive-include treemun_sim/data *.csv
+recursive-include examples *.csv *.txt *.shp *.shx *.dbf *.prj *.cpg
+recursive-include examples/shapefile/solutions .gitkeep
+recursive-include docs *.md *.png *.jpg *.jpeg
