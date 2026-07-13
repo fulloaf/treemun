@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="treemun-sim",
-    version="1.3.0",
+    version="1.4.0",
     author="Felipe Ulloa-Fierro",
     author_email="felipe.ulloa@utalca.cl",
     description=(

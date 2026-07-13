@@ -78,7 +78,7 @@ except ImportError:
         )
 
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __author__ = "Felipe Ulloa-Fierro"
 
 # Main functions exposed by the package
@@ -102,6 +102,50 @@ __all__ = [
     # Spatial (optional)
     "export_simulation_to_shapefile",
     "export_optimal_policy_to_shapefile",
+
+    # v1.4.0 spatial adjacency and green-up extensions
+    "build_adjacency_edges",
+    "build_final_harvest_indicator",
+    "add_final_harvest_adjacency",
+    "add_greenup_adjacency",
+    "count_greenup_adjacency_conflicts",
+    "build_multi_epsilon_front_3d",
+    "plot_multi_epsilon_front_3d",
 ]
 from .optimization import build_weighted_pareto_front, plot_weighted_pareto_front
 from .optimization import build_epsilon_constraint_front, plot_epsilon_constraint_front
+
+# ---------------------------------------------------------------------
+# v1.4.0 spatial adjacency and green-up extensions
+# ---------------------------------------------------------------------
+
+try:
+    from .spatial_adjacency import (
+        build_adjacency_edges,
+        build_final_harvest_indicator,
+    )
+except Exception:
+    pass
+
+try:
+    from .adjacency_extension import (
+        add_final_harvest_adjacency,
+    )
+except Exception:
+    pass
+
+try:
+    from .greenup_extension import (
+        add_greenup_adjacency,
+        count_greenup_adjacency_conflicts,
+    )
+except Exception:
+    pass
+
+try:
+    from .multi_epsilon import (
+        build_multi_epsilon_front_3d,
+        plot_multi_epsilon_front_3d,
+    )
+except Exception:
+    pass

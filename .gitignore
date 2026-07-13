@@ -169,3 +169,32 @@ setup.ipynb
 *.ipynb
 setup.ipynb
 .ipynb_checkpoints/
+
+# Treemun local test outputs
+treemun_sim/adjacency_edges.csv
+treemun_sim/*.png
+treemun_sim/greenup_penalty_sensitivity*.csv
+treemun_sim/results_adjacency_scaled_evaluation/
+treemun_results/
+log_cbc.txt
+log_cplex.txt
+*.patch
+
+# Python build/cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Deprecated examples and local outputs
+examples/example_100stands_plantation.csv
+examples/example_100stands_plantation_shapefile/
+examples/log_cbc.txt
+treemun_sim/outputs/
+treemun_sim/outputs_knee_comparison/
+treemun_sim/*period_change_summary.csv
+*.orig
