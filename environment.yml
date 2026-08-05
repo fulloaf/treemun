@@ -1,0 +1,10 @@
+name: treemun200
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - coincbc
+  - highspy
+  - pip:
+      - -e .[complete,test,notebook]

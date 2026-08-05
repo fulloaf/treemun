@@ -1,0 +1,12 @@
+name: treemun200-cplex
+channels:
+  - conda-forge
+  - ibmdecisionoptimization
+dependencies:
+  - python=3.11
+  - pip
+  - coincbc
+  - highspy
+  - cplex
+  - pip:
+      - -e .[complete,test,notebook]

@@ -1,2 +1,4 @@
-numpy>=1.19.0
-pandas>=1.2.0
+# Treemün with simulation, spatial analysis, Pyomo, and HiGHS.
+# CBC is a system/Conda executable and is installed by environment.yml.
+# CPLEX is commercial/optionally licensed and is intentionally not installed here.
+.[complete]
