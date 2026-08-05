@@ -1,0 +1,3 @@
+# Editable development installation with tests and notebook dependencies.
+# For CBC, create the Conda environment from environment.yml.
+-e .[complete,test,notebook]

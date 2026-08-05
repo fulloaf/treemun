@@ -1,151 +1,104 @@
-# treemun/treemun_sim/__init__.py
+"""Treemün: dry-wood trajectory simulation and forest planning."""
 
-"""
-treemun - Package for simulation of forest growth, yield and management
-
-basic usage example:
-
-    import treemun as tm
-
-    horizon = 30
-    stand_number = 100
-
-    # Forest simulation
-    forest, forest_summary, last_period_biomass, collected_biomass = tm.simular_bosque(
-        horizonte=horizon,
-        num_rodales=stand_number
-    )
-
-    # Optional carbon post-processing
-    forest, forest_summary, last_period_biomass, collected_biomass, carbon_seq = tm.simular_bosque(
-        horizonte=horizon,
-        num_rodales=stand_number,
-        Carbon=True,
-        return_carbon_opti=True
-    )
-
-    # Optimization
-    model = tm.forest_management_optimization_model(
-        forest, last_period_biomass, collected_biomass, horizon
-    )
-
-    results = tm.solve_model(model, 'cbc')
-    solution = tm.extract_results(model, results)
-
-"""
-
-# Main functions for simulation
-from .core import simular_bosque
-
-# Optimization functions
+from .carbon import (
+    CO2E_FACTOR,
+    DEFAULT_SPECIES_CARBON_PARAMETERS,
+    SpeciesCarbonParameter,
+    StandingWoodCarbonAccounting,
+    add_carbon_accounting,
+)
+from .compatibility import convert_v1_stand_file
+from .core import DEFAULT_RANDOM_SEED, simulate_forest
+from .economic import (
+    ECONOMIC_METRIC_BY_MODE,
+    VALID_ECONOMIC_MODES,
+    EconomicEvaluation,
+    evaluate_forest_economics,
+)
+from .data import load_lookup_table, load_stand_table
 from .optimization import (
+    biobjective_normalization_from_payoff,
+    build_biobjective_payoff_table,
+    build_epsilon_constraint_front,
+    build_forest_management_model,
+    build_three_objective_epsilon_front,
+    build_three_objective_payoff_table,
+    build_weighted_pareto_front,
+    filter_nondominated_points,
+    identify_three_objective_knee_point,
+    extract_solution,
     forest_management_optimization_model,
     solve_model,
-    extract_results,
+)
+from .simulation import (
+    DEFAULT_EUCALYPTUS_POLICIES,
+    DEFAULT_FALLBACK_THINNING_FRACTION,
+    DEFAULT_MINIMUM_CURVE_RESIDUAL_FRACTION,
+    DEFAULT_PINUS_POLICIES,
+    EUCALYPTUS,
+    PINUS,
+)
+from .spatial import (
+    export_optimal_solution_to_geopackage,
+    export_simulation_to_geopackage,
+    forest_to_long_table,
+)
+from .spatial_constraints import (
+    add_final_harvest_adjacency,
+    add_greenup_adjacency,
+    add_spatial_conflict_measure,
+    add_greenup_event_conflict_measure,
+    build_adjacency_edges,
+    build_final_harvest_indicator,
+    count_greenup_adjacency_conflicts,
+    count_greenup_event_conflicts,
 )
 
-# Carbon proxy functions
-from .carbon import (
-    CarbonSequestrationProxy,
-    SpeciesCarbonParameter,
-    DEFAULT_SPECIES_CARBON_PARAMETERS,
-    CO2E_FACTOR,
-    add_carbon_proxy_to_bosque,
-    getCarbon4Opti,
-)
-
-# Spatial functions (optional - require geopandas)
-try:
-    from .spatial import (
-        export_simulation_to_shapefile,
-        export_optimal_policy_to_shapefile,
-    )
-    _SPATIAL_AVAILABLE = True
-except ImportError:
-    _SPATIAL_AVAILABLE = False
-
-    # Define placeholder functions that inform users about missing dependencies
-    def export_simulation_to_shapefile(*args, **kwargs):
-        raise ImportError(
-            "Funciones espaciales no disponibles. "
-            "Instala las dependencias con: pip install treemun-sim[spatial]"
-        )
-
-    def export_optimal_policy_to_shapefile(*args, **kwargs):
-        raise ImportError(
-            "Funciones espaciales no disponibles. "
-            "Instala las dependencias con: pip install treemun-sim[spatial]"
-        )
-
-
-__version__ = "1.4.0"
+__version__ = "2.0.0"
 __author__ = "Felipe Ulloa-Fierro"
 
-# Main functions exposed by the package
 __all__ = [
-    # Simulation
-    "simular_bosque",
-
-    # Optimization
-    "forest_management_optimization_model",
-    "solve_model",
-    "extract_results",
-
-    # Carbon proxy
-    "CarbonSequestrationProxy",
-    "SpeciesCarbonParameter",
-    "DEFAULT_SPECIES_CARBON_PARAMETERS",
     "CO2E_FACTOR",
-    "add_carbon_proxy_to_bosque",
-    "getCarbon4Opti",
-
-    # Spatial (optional)
-    "export_simulation_to_shapefile",
-    "export_optimal_policy_to_shapefile",
-
-    # v1.4.0 spatial adjacency and green-up extensions
-    "build_adjacency_edges",
-    "build_final_harvest_indicator",
+    "DEFAULT_EUCALYPTUS_POLICIES",
+    "DEFAULT_FALLBACK_THINNING_FRACTION",
+    "DEFAULT_MINIMUM_CURVE_RESIDUAL_FRACTION",
+    "DEFAULT_PINUS_POLICIES",
+    "DEFAULT_RANDOM_SEED",
+    "DEFAULT_SPECIES_CARBON_PARAMETERS",
+    "EUCALYPTUS",
+    "ECONOMIC_METRIC_BY_MODE",
+    "EconomicEvaluation",
+    "VALID_ECONOMIC_MODES",
+    "evaluate_forest_economics",
+    "PINUS",
+    "SpeciesCarbonParameter",
+    "StandingWoodCarbonAccounting",
+    "add_carbon_accounting",
     "add_final_harvest_adjacency",
     "add_greenup_adjacency",
+    "add_spatial_conflict_measure",
+    "add_greenup_event_conflict_measure",
+    "biobjective_normalization_from_payoff",
+    "build_adjacency_edges",
+    "build_biobjective_payoff_table",
+    "build_final_harvest_indicator",
+    "build_epsilon_constraint_front",
+    "build_forest_management_model",
+    "build_three_objective_epsilon_front",
+    "build_three_objective_payoff_table",
+    "build_weighted_pareto_front",
+    "convert_v1_stand_file",
     "count_greenup_adjacency_conflicts",
-    "build_multi_epsilon_front_3d",
-    "plot_multi_epsilon_front_3d",
+    "count_greenup_event_conflicts",
+    "export_optimal_solution_to_geopackage",
+    "export_simulation_to_geopackage",
+    "extract_solution",
+    "filter_nondominated_points",
+    "identify_three_objective_knee_point",
+    "forest_management_optimization_model",
+    "forest_to_long_table",
+    "load_lookup_table",
+    "load_stand_table",
+    "simulate_forest",
+    "solve_model",
 ]
-from .optimization import build_weighted_pareto_front, plot_weighted_pareto_front
-from .optimization import build_epsilon_constraint_front, plot_epsilon_constraint_front
-
-# ---------------------------------------------------------------------
-# v1.4.0 spatial adjacency and green-up extensions
-# ---------------------------------------------------------------------
-
-try:
-    from .spatial_adjacency import (
-        build_adjacency_edges,
-        build_final_harvest_indicator,
-    )
-except Exception:
-    pass
-
-try:
-    from .adjacency_extension import (
-        add_final_harvest_adjacency,
-    )
-except Exception:
-    pass
-
-try:
-    from .greenup_extension import (
-        add_greenup_adjacency,
-        count_greenup_adjacency_conflicts,
-    )
-except Exception:
-    pass
-
-try:
-    from .multi_epsilon import (
-        build_multi_epsilon_front_3d,
-        plot_multi_epsilon_front_3d,
-    )
-except Exception:
-    pass

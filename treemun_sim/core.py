@@ -1,196 +1,120 @@
-#!/usr/bin/env python
-# coding: utf-8
+"""Public simulation workflow for Treemün 2.0."""
 
-# treemun_sim/core.py
-"""
-Función principal del simulador forestal.
+from __future__ import annotations
 
-La contabilidad de carbono se implementa como una capa opcional de
-postprocesamiento. No modifica el simulador de crecimiento/rendimiento.
-"""
-
-import pandas as pd
-import numpy as np
 import random
-from typing import List, Tuple, Dict, Any
-import pkg_resources
-from .generadores import generar_rodales_aleatorios, generar_rodales, generar_rodalesconpolicy
-from .simulacion import simula_bosque as simula_bosque_interno, getBiomasa4Opti
+from pathlib import Path
+from typing import Mapping, Sequence
 
-# Semilla global para reproducibilidad
-SEMILLA_GLOBAL = 5555
+import numpy as np
+import pandas as pd
+
+from .carbon import SpeciesCarbonParameter, StandingWoodCarbonAccounting
+from .data import (
+    load_lookup_table,
+    load_stand_table,
+    validate_stands_against_lookup,
+)
+from .simulation import (
+    DEFAULT_EUCALYPTUS_POLICIES,
+    DEFAULT_FALLBACK_THINNING_FRACTION,
+    DEFAULT_MINIMUM_CURVE_RESIDUAL_FRACTION,
+    DEFAULT_PINUS_POLICIES,
+    generate_random_stands,
+    simulate_trajectories,
+)
+
+DEFAULT_RANDOM_SEED = 5555
 
 
-def cargar_lookup_table():
-    """Carga la tabla de lookup incluida en el paquete."""
-    try:
-        ruta_archivo = pkg_resources.resource_filename('treemun_sim', 'data/lookup_table.csv')
-        df = pd.read_csv(ruta_archivo, keep_default_na=False)
-        df.set_index(
-            ["Especie", "Zona", "SiteIndex", "Manejo", "Condicion", "DensidadInicial"],
-            inplace=True
-        )
-        dict_idx = df["id"].to_dict()
-        return df, dict_idx
-    except Exception as e:
-        raise FileNotFoundError(f"No se pudo cargar lookup_table.csv: {e}")
+def simulate_forest(
+    stands_file: str | Path | None = None,
+    *,
+    pinus_policies: Sequence[tuple[int, int]] = DEFAULT_PINUS_POLICIES,
+    eucalyptus_policies: Sequence[tuple[int]] = DEFAULT_EUCALYPTUS_POLICIES,
+    horizon: int = 30,
+    number_of_stands: int = 100,
+    random_seed: int = DEFAULT_RANDOM_SEED,
+    lookup_table_file: str | Path | None = None,
+    include_carbon: bool = False,
+    return_carbon_for_optimization: bool = False,
+    carbon_parameters: Mapping[str, SpeciesCarbonParameter | float] | None = None,
+    period_years: float = 1.0,
+    fallback_thinning_fraction: float = DEFAULT_FALLBACK_THINNING_FRACTION,
+    minimum_curve_residual_fraction: float = (
+        DEFAULT_MINIMUM_CURVE_RESIDUAL_FRACTION
+    ),
+):
+    """Simulate feasible stand-management trajectories.
 
+    Growth-equation outputs are interpreted as metric tonnes of dry wood per
+    hectare. Stand-level stocks and harvests are metric tonnes of dry wood.
 
-def simular_bosque(
-    archivo_rodales: str = None,
-    policies_pino: List[Tuple[int, int]] = None,
-    policies_eucalyptus: List[Tuple[int,]] = None,
-    horizonte: int = 30,
-    num_rodales: int = 100,
-    semilla: int = None,
-    Carbon: bool = False,
-    return_carbon_opti: bool = False,
-    carbon_opti_column: str = "CarbSeqOPT",
-    carbon_kwargs: Dict[str, Any] = None,
-) -> Tuple:
+    Returns four objects by default. When ``return_carbon_for_optimization`` is
+    true, returns a fifth dictionary with annual standing-carbon stock-time
+    coefficients in tC·year.
+
+    Pinus stands must start from a pre-thinning equation with a valid
+    ``next_equation_id``. The post-thinning equation is entered only after a
+    simulated thinning operation. If the selected policy's thinning age is
+    lower than the initial biological age, Treemün fully harvests the initial
+    rotation in period 1 and starts period 2 at age 1 on the pre-thinning curve.
+
+    At a simulated thinning, the simulator first compares the pre- and
+    post-thinning curves. If the post-thinning curve would retain no more than
+    ``minimum_curve_residual_fraction`` of the pre-thinning stock,
+    ``fallback_thinning_fraction`` is harvested instead. Subsequent stocks keep
+    the corrected residual and follow the increments of the post-thinning curve.
     """
-    Función principal del simulador forestal.
-
-    Args:
-        archivo_rodales: Ruta a archivo CSV/TXT con información de rodales.
-                        Si se especifica, se ignora num_rodales y se cargan
-                        los rodales del archivo. Columnas requeridas:
-                        id_rodal, hectareas, especie, edad_inicial, zona,
-                        site_index, manejo, condicion, densidad_inicial.
-        policies_pino: Lista de políticas para pino, formato
-                      [(raleo, cosecha), ...]. Por defecto:
-                      [(9, 18), (9, 20), ..., (12, 24)].
-        policies_eucalyptus: Lista de políticas para eucalipto, formato
-                            [(cosecha,), ...]. Por defecto:
-                            [(9,), (10,), (11,), (12,)].
-        horizonte: Horizonte temporal de la simulación (años).
-        num_rodales: Número de rodales a generar aleatoriamente
-                    (ignorado si archivo_rodales es especificado).
-        semilla: Semilla para reproducibilidad. Si es None, usa
-                SEMILLA_GLOBAL (5555).
-        Carbon: Si True, agrega a cada DataFrame de ``bosque`` las columnas
-                del proxy de carbono. Si False, mantiene la salida original.
-        return_carbon_opti: Si True, retorna un quinto objeto con el
-                            diccionario de carbono para optimización.
-                            Requiere Carbon=True.
-        carbon_opti_column: Columna usada para construir el diccionario de
-                            optimización de carbono. Por defecto usa
-                            ``CarbSeqOPT`` en Mg C. Para CO2e se puede usar
-                            ``CarbEqvOPT``.
-        carbon_kwargs: Argumentos opcionales para ``CarbonSequestrationProxy``.
-
-    Returns:
-        Si return_carbon_opti=False:
-            (bosque, resumen, biomasa_final_por_rodal, biomasa_estimada)
-
-        Si return_carbon_opti=True:
-            (bosque, resumen, biomasa_final_por_rodal, biomasa_estimada,
-             carbon_estimada)
-
-    Notes:
-        La capa de carbono es un postprocesamiento. No modifica la simulación
-        de crecimiento/rendimiento ni la lógica original de ``bioOPT``.
-    """
-
-    if return_carbon_opti and not Carbon:
+    if return_carbon_for_optimization and not include_carbon:
         raise ValueError(
-            "return_carbon_opti=True requiere Carbon=True. "
-            "Active Carbon=True para calcular el proxy de carbono."
+            "return_carbon_for_optimization=True requires include_carbon=True."
         )
+    if int(horizon) < 1:
+        raise ValueError("horizon must be at least one year.")
 
-    # Establecer semilla (usar valor por defecto si no se especifica)
-    if semilla is None:
-        semilla = SEMILLA_GLOBAL
+    np.random.seed(int(random_seed))
+    random.seed(int(random_seed))
 
-    np.random.seed(semilla)
-    random.seed(semilla)
-
-    # Políticas por defecto si no se especifican
-    if policies_pino is None:
-        policies_pino = [
-            (9, 18), (9, 20), (9, 22), (9, 24),
-            (10, 18), (10, 20), (10, 22), (10, 24),
-            (11, 18), (11, 20), (11, 22), (11, 24),
-            (12, 18), (12, 20), (12, 22), (12, 24)
-        ]
-
-    if policies_eucalyptus is None:
-        policies_eucalyptus = [(9,), (10,), (11,), (12,)]
-
-    # Cargar datos base
-    df, dict_idx = cargar_lookup_table()
-
-    # Generar configuración de rodales
-    if archivo_rodales is not None:
-        # Cargar desde archivo
-        from .generadores import cargar_rodales_desde_archivo
-        config = cargar_rodales_desde_archivo(
-            archivo=archivo_rodales,
-            df=df,
-            dict_idx=dict_idx,
-            horizonte=horizonte,
-            policies_pino=policies_pino,
-            policies_eucalyptus=policies_eucalyptus
+    lookup = load_lookup_table(lookup_table_file)
+    if stands_file is None:
+        stands = generate_random_stands(
+            lookup,
+            number_of_stands=int(number_of_stands),
+            horizon=int(horizon),
+            pinus_policies=pinus_policies,
+            eucalyptus_policies=eucalyptus_policies,
+            random_seed=int(random_seed),
         )
     else:
-        # Generar aleatoriamente
-        config = generar_rodales_aleatorios(
-            df=df,
-            dict_idx=dict_idx,
-            num_rodales=num_rodales,
-            horizonte=horizonte,
-            policies_pino=policies_pino,
-            policies_eucalyptus=policies_eucalyptus
-        )
+        stands = load_stand_table(stands_file)
+    validate_stands_against_lookup(stands, lookup)
 
-    # Generar rodales base
-    rodales = generar_rodales(config, df, dict_idx)
-
-    # Aplicar políticas
-    rodales_con_policy = generar_rodalesconpolicy(rodales, config)
-
-    # Simular crecimiento
-    bosque, resumen, biomasa_final_por_rodal = simula_bosque_interno(
-        rodales_con_policy, df, config["horizonte"]
+    forest, policy_summary, ending_stock, harvested_by_period = simulate_trajectories(
+        stands,
+        lookup,
+        horizon=int(horizon),
+        pinus_policies=pinus_policies,
+        eucalyptus_policies=eucalyptus_policies,
+        fallback_thinning_fraction=fallback_thinning_fraction,
+        minimum_curve_residual_fraction=minimum_curve_residual_fraction,
     )
 
-    # Generar datos para optimización.
-    # Esta es la salida original basada en bioOPT.
-    biomasa_estimada = getBiomasa4Opti(bosque, resumen)
-
-    # Capa opcional de postprocesamiento de carbono.
-    # Si Carbon=False, no se calcula nada adicional y se mantiene la salida original.
-    carbon_estimada = None
-
-    if Carbon:
-        from .carbon import CarbonSequestrationProxy
-
-        if carbon_kwargs is None:
-            carbon_kwargs = {}
-
-        carbon_proxy = CarbonSequestrationProxy(**carbon_kwargs)
-
-        # Agrega columnas de carbono a cada DataFrame de bosque.
-        # No modifica el simulador de crecimiento/rendimiento.
-        bosque = carbon_proxy.add_to_bosque(bosque)
-
-        # Exporta el parámetro de carbono para optimización solo si se solicita.
-        # Por defecto exporta CarbSeqOPT, es decir, el cambio neto de carbono
-        # post-operación en Mg C, únicamente en periodos operacionales.
-        if return_carbon_opti:
-            carbon_estimada = carbon_proxy.opt_period_dict(
-                bosque,
-                column=carbon_opti_column,
-                reference_keys=biomasa_estimada.keys(),
-            )
-
-    if return_carbon_opti:
-        return (
-            bosque,
-            resumen,
-            biomasa_final_por_rodal,
-            biomasa_estimada,
-            carbon_estimada,
+    carbon_stock_time_by_period = None
+    if include_carbon:
+        accounting = StandingWoodCarbonAccounting(
+            carbon_parameters, period_years=period_years
         )
+        forest = accounting.add_to_forest(forest)
+        if return_carbon_for_optimization:
+            carbon_stock_time_by_period = accounting.stock_time_coefficients(forest)
 
-    return bosque, resumen, biomasa_final_por_rodal, biomasa_estimada
+    if return_carbon_for_optimization:
+        return (
+            forest,
+            policy_summary,
+            ending_stock,
+            harvested_by_period,
+            carbon_stock_time_by_period,
+        )
+    return forest, policy_summary, ending_stock, harvested_by_period

@@ -1,10 +1,28 @@
-include README.md
 include LICENSE
+include README.md
+include README_SPATIAL.md
+include CHANGELOG.md
+include MIGRATION_1_TO_2.md
+include FINAL_RELEASE_NOTES.md
+include pyproject.toml
 include requirements.txt
-include treemun_sim_v1_3_0_full_pipeline.ipynb
+include requirements-dev.txt
+include requirements-cplex.txt
+include environment.yml
+include environment-cplex.yml
 
-recursive-include treemun_sim *.py
 recursive-include treemun_sim/data *.csv
-recursive-include examples *.csv *.txt *.shp *.shx *.dbf *.prj *.cpg
-recursive-include examples/shapefile/solutions .gitkeep
-recursive-include docs *.md *.png *.jpg *.jpeg
+recursive-include examples *.csv *.gpkg *.ipynb
+recursive-include tests *.py
+recursive-include benchmark_notebooks_and_generator *.md *.py *.csv *.xlsm *.ipynb
+
+prune **/.ipynb_checkpoints
+prune **/__pycache__
+prune **/.pytest_cache
+prune **/outputs
+prune **/outputs_*
+prune **/demo_outputs
+
+global-exclude *.py[cod]
+global-exclude .DS_Store
+global-exclude Thumbs.db

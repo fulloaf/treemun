@@ -1,0 +1,3 @@
+# Optional CPLEX Python API / Community Edition runtime.
+# A full unrestricted CPLEX installation still requires an appropriate IBM license.
+.[complete,cplex]

@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "treemun-sim"
+version = "2.0.0"
+description = "Dry-wood trajectory simulation, carbon accounting, and spatial harvest scheduling for plantation forests"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  {name = "Felipe Ulloa-Fierro"}
+]
+keywords = [
+  "forest management",
+  "harvest scheduling",
+  "dry wood",
+  "carbon accounting",
+  "mixed-integer programming",
+  "spatial planning"
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.1"
+]
+
+[project.optional-dependencies]
+optimization = ["pyomo>=6.7", "highspy>=1.7"]
+spatial = ["geopandas>=0.14", "shapely>=2.0", "pyogrio>=0.7"]
+complete = [
+  "pyomo>=6.7",
+  "highspy>=1.7",
+  "geopandas>=0.14",
+  "shapely>=2.0",
+  "pyogrio>=0.7"
+]
+cplex = [
+  "pyomo>=6.7",
+  "cplex>=22.1.2"
+]
+notebook = [
+  "matplotlib>=3.7",
+  "plotly>=5.20",
+  "scipy>=1.11",
+  "nbformat>=5.9",
+  "jupyterlab>=4",
+  "openpyxl>=3.1"
+]
+test = [
+  "pytest>=8",
+  "pyomo>=6.7",
+  "highspy>=1.7",
+  "nbformat>=5.9",
+  "geopandas>=0.14",
+  "shapely>=2.0",
+  "pyogrio>=0.7",
+  "tomli>=2; python_version < '3.11'"
+]
+
+[project.urls]
+Homepage = "https://github.com/fulloaf/treemun"
+Repository = "https://github.com/fulloaf/treemun"
+Documentation = "https://github.com/fulloaf/treemun#readme"
+Issues = "https://github.com/fulloaf/treemun/issues"
+Changelog = "https://github.com/fulloaf/treemun/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["treemun_sim*"]
+
+[tool.setuptools.package-data]
+treemun_sim = ["data/*.csv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
