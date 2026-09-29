@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "treemun-sim"
-version = "2.0.0"
+version = "2.0.0.post1"
 description = "Dry-wood trajectory simulation, carbon accounting, and spatial harvest scheduling for plantation forests"
 readme = "README.md"
 requires-python = ">=3.10"
