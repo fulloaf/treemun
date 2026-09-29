@@ -72,9 +72,10 @@ test = [
 [project.urls]
 Homepage = "https://github.com/fulloaf/treemun"
 Repository = "https://github.com/fulloaf/treemun"
-Documentation = "https://github.com/fulloaf/treemun#readme"
+Documentation = "https://treemun.readthedocs.io/"
 Issues = "https://github.com/fulloaf/treemun/issues"
 Changelog = "https://github.com/fulloaf/treemun/blob/main/CHANGELOG.md"
+Paper = "https://doi.org/10.1016/j.ecoinf.2026.104044"
 
 [tool.setuptools]
 include-package-data = true
